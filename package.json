@@ -1,0 +1,35 @@
+{
+  "name": "pitchpulse-football-tracker",
+  "version": "1.0.0",
+  "description": "Football fixture tracking bot and web dashboard for Top 5 European Leagues and UEFA Competitions",
+  "main": "src/server.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build": "tsc"
+  },
+  "keywords": [
+    "football",
+    "fixtures",
+    "premier-league",
+    "champions-league",
+    "bot"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "discord.js": "^14.27.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "grammy": "^1.46.0",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

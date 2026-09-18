@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PitchPulse — European Football Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- Top Navigation Bar -->
+<header class="navbar">
+  <div class="nav-container">
+    <div class="brand" onclick="navigateTo('dashboard')">Pitch<span>Pulse</span></div>
+    <nav class="nav-links">
+      <button class="nav-btn active" data-view="dashboard" onclick="navigateTo('dashboard')">⚡ Dashboard</button>
+      <button class="nav-btn" data-view="live" onclick="navigateTo('live')"><span class="nav-pulse"></span> Live Matches</button>
+      <button class="nav-btn" data-view="matches" onclick="navigateTo('matches')">📅 Matches & Schedules</button>
+      <button class="nav-btn" data-view="squads" onclick="navigateTo('squads')">👥 Squads</button>
+      <button class="nav-btn" data-view="standings" onclick="navigateTo('standings')">🏆 Standings</button>
+      <button class="nav-btn alerts-nav-highlight" data-view="alerts" onclick="openAlertsModal()">🔔 Alerts Hub</button>
+    </nav>
+  </div>
+</header>
+
+<!-- 1. DASHBOARD VIEW -->
+<main id="viewDashboard" class="view-section active">
+  <div class="hero">
+    <div class="hero-inner">
+      <h1 class="hero-title">Live European Football Hub</h1>
+      <p class="hero-sub">Premier League, La Liga, Serie A, Bundesliga, Ligue 1 & UEFA Competitions.</p>
+      <div class="next-up" id="nextUp">Loading marquee match…</div>
+      
+      <div class="notify-master">
+        <span id="notifyStatusText">Notifications are off.</span>
+        <button id="notifyBtn">Turn on notifications</button>
+        <button id="heroAlertsBtn" onclick="openAlertsModal()" style="margin-left:8px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:#fff; border-radius:6px; padding:7px 14px; font-size:0.85rem; font-weight:600; cursor:pointer;">🔔 Team Alerts Hub</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ask-wrap">
+    <form id="askForm" class="ask-box">
+      <input id="askInput" type="text" placeholder="Ask e.g. &quot;next arsenal match&quot;, &quot;fc barcelona squad&quot;, or &quot;who is playing live&quot;" autocomplete="off">
+      <button type="submit">Ask</button>
+    </form>
+    <div id="askAnswer"></div>
+  </div>
+
+  <div class="quick-overview-wrap">
+    <div class="section-header">
+      <h2>🔥 Live & Recent Matchday Highlights</h2>
+      <button class="view-all-btn" onclick="navigateTo('matches')">View Full Schedule →</button>
+    </div>
+    <div id="dashboardLiveList" class="match-grid"></div>
+  </div>
+</main>
+
+<!-- 2. LIVE MATCHES VIEW (ALAG SECTION) -->
+<main id="viewLive" class="view-section">
+  <div class="page-header">
+    <div class="page-title-wrap">
+      <span class="live-pill"><span class="pulse-dot"></span> REAL-TIME</span>
+      <h2>In-Play Live Match Center</h2>
+    </div>
+    <p class="page-sub">Live clocks, active scores, and minute-by-minute goal events across all European leagues.</p>
+  </div>
+  <div class="field">
+    <div id="fullLiveList" class="match-grid"></div>
+  </div>
+</main>
+
+<!-- 3. MATCHES & SCHEDULES VIEW -->
+<main id="viewMatches" class="view-section">
+  <div class="page-header">
+    <h2>📅 European Matches & Schedules</h2>
+    <p class="page-sub">Browse full fixture calendars across the Top 5 Leagues & UEFA tournaments.</p>
+  </div>
+  
+  <div class="tabs" id="matchLeagueTabs"></div>
+
+  <div class="field">
+    <div id="matchList" class="match-grid"><p style="color:var(--sideline)">Loading fixtures…</p></div>
+    <div class="foot-note" id="footNote"></div>
+  </div>
+</main>
+
+<!-- 4. SQUADS EXPLORER VIEW (ALAG SECTION) -->
+<main id="viewSquads" class="view-section">
+  <div class="page-header">
+    <h2>👥 Official Club Squads & Rosters</h2>
+    <p class="page-sub">Type any team name or select any club from the Top 5 Leagues to view their full official squad with jersey numbers.</p>
+  </div>
+
+  <div class="squad-search-wrap">
+    <div class="ask-box">
+      <input id="squadSearchInput" type="text" placeholder="Search any team e.g. FC Barcelona, Real Madrid, Arsenal, Bayern Munich, PSG..." autocomplete="off">
+      <button id="squadSearchBtn" onclick="searchSquadFromInput()">Find Squad</button>
+    </div>
+  </div>
+
+  <!-- League Quick Select for Squads -->
+  <div class="squad-league-selector">
+    <label>Or browse clubs by competition:</label>
+    <div class="squad-league-pills" id="squadLeaguePills"></div>
+  </div>
+
+  <!-- Club Chips Grid -->
+  <div class="club-chips-container" id="clubChipsContainer">
+    <p style="color:var(--sideline); font-size:0.9rem">Select a league above or search any team name.</p>
+  </div>
+
+  <!-- Squad Display Card -->
+  <div class="squad-result-container" id="squadResult"></div>
+</main>
+
+<!-- 5. STANDINGS VIEW -->
+<main id="viewStandings" class="view-section">
+  <div class="page-header">
+    <h2>🏆 European League Tables</h2>
+    <p class="page-sub">Current league standings, points, goal difference, and recent form.</p>
+  </div>
+  
+  <div class="tabs" id="standingsLeagueTabs"></div>
+
+  <div class="field">
+    <div class="standings-table-wrap" id="standingsTableContainer">
+      <p style="color:var(--sideline)">Loading table…</p>
+    </div>
+  </div>
+</main>
+
+<!-- HEAD-TO-HEAD & MATCH DETAILS MODAL -->
+<div id="matchDetailsModal" class="modal-backdrop" onclick="closeMatchModal(event)">
+  <div class="modal-card match-modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close-btn" onclick="closeMatchModal()">×</button>
+    <div id="matchModalBody">
+      <p style="color:var(--sideline)">Loading match insights...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ALERTS & SUBSCRIPTIONS HUB MODAL -->
+<div id="alertsModal" class="modal-backdrop" onclick="closeAlertsModal(event)">
+  <div class="modal-card alerts-modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close-btn" onclick="closeAlertsModal()">×</button>
+    <div class="modal-header">
+      <div class="modal-badge">PUSH NOTIFICATIONS & BOTS</div>
+      <h2>🔔 Alerts & Subscriptions Hub</h2>
+      <p class="modal-sub">Set up instant notifications for your favorite European clubs and matches.</p>
+    </div>
+
+    <div class="alerts-grid-layout">
+      <!-- Form to Add Subscription -->
+      <div class="alert-form-panel">
+        <h3>Follow a Club</h3>
+        <div class="form-group">
+          <label>Select European Team</label>
+          <select id="alertTeamSelect" class="form-control">
+            <option value="">-- Choose a Team (All 96 Clubs) --</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Alert Events</label>
+          <div class="events-checkbox-row">
+            <label class="check-pill"><input type="checkbox" id="chkGoal" checked> ⚽ Goals</label>
+            <label class="check-pill"><input type="checkbox" id="chkKickoff" checked> ⏱️ Kickoff</label>
+            <label class="check-pill"><input type="checkbox" id="chkFulltime" checked> 🏁 Full-Time</label>
+            <label class="check-pill"><input type="checkbox" id="chkLineup"> 📋 Lineups</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Delivery Channel</label>
+          <select id="alertChannelSelect" class="form-control">
+            <option value="web">🌐 In-Browser (SSE / Push Notifications)</option>
+            <option value="telegram">📱 Telegram Bot</option>
+            <option value="discord">🎮 Discord Bot</option>
+            <option value="whatsapp">💬 WhatsApp</option>
+          </select>
+        </div>
+
+        <button id="saveSubBtn" class="primary-btn" onclick="submitNewSubscription()">+ Subscribe to Alerts</button>
+
+        <div class="test-alert-box">
+          <span>Want to verify notifications?</span>
+          <button class="test-alert-btn" onclick="triggerTestAlert()">⚡ Test Live Goal Alert</button>
+        </div>
+      </div>
+
+      <!-- Active Subscriptions List -->
+      <div class="active-subs-panel">
+        <div class="subs-header">
+          <h3>Active Subscriptions</h3>
+          <button class="refresh-subs-btn" onclick="loadUserSubscriptions()">↻ Refresh</button>
+        </div>
+        <div id="activeSubsList" class="subs-list">
+          <p style="color:var(--sideline)">Loading subscriptions...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
