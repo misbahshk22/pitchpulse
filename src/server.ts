@@ -12,6 +12,8 @@ import { initTelegramBot } from './bots/telegram.js';
 import { initDiscordBot } from './bots/discord.js';
 import { handleWhatsAppVerification, handleWhatsAppIncoming } from './bots/whatsapp.js';
 
+import fs from 'node:fs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
@@ -20,11 +22,25 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static assets
+// Serve static assets from both projectRoot and cwd
 app.use('/static', express.static(path.join(projectRoot, 'static')));
+app.use('/static', express.static(path.join(projectRoot, 'public', 'static')));
+app.use('/static', express.static(path.join(process.cwd(), 'static')));
+app.use('/static', express.static(path.join(process.cwd(), 'public', 'static')));
+app.use(express.static(path.join(projectRoot, 'public')));
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // Serve index.html on root
 app.get('/', (req, res) => {
+  const candidates = [
+    path.join(process.cwd(), 'public', 'index.html'),
+    path.join(projectRoot, 'public', 'index.html'),
+    path.join(projectRoot, 'index.html'),
+    path.join(process.cwd(), 'index.html')
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return res.sendFile(p);
+  }
   res.sendFile(path.join(projectRoot, 'index.html'));
 });
 
@@ -275,7 +291,7 @@ async function bootstrap() {
     console.log(`📱 Telegram Bot: ${CONFIG.telegramBotToken ? 'Connected' : 'Standby (Provide TELEGRAM_BOT_TOKEN)'}`);
     console.log(`🎮 Discord Bot:  ${CONFIG.discordBotToken ? 'Connected' : 'Standby (Provide DISCORD_BOT_TOKEN)'}`);
     console.log(`💬 WhatsApp Bot: Webhook listening at /api/webhook/whatsapp`);
-    console.log(`📡 Simulation Mode: ${CONFIG.isSimulationMode ? 'Active (Realistic Mock Simulator)' : 'Live (API-Football Connected)'}`);
+    console.log(`📡 Feed Mode: ${CONFIG.useEspnFreeLiveFeed ? 'Public ESPN Real-Time Feed (100% Free Live)' : 'API-Football Connected'}`);
     console.log(`🏆 Tracked Leagues: Premier League, La Liga, Serie A, Bundesliga, Ligue 1, UCL, UEL, UECL`);
     console.log(`====================================================`);
   });

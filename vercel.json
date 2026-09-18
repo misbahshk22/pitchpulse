@@ -7,15 +7,19 @@
       "config": {
         "includeFiles": [
           "index.html",
-          "static/**"
+          "static/**",
+          "public/**"
         ]
       }
     }
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
+      "src": "/api/(.*)",
+      "dest": "src/server.ts"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
