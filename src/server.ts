@@ -10,7 +10,7 @@ import { notificationDispatcher } from './services/notificationDispatcher.js';
 import { handleNaturalLanguageQuery } from './services/nlpQuery.js';
 import { initTelegramBot, getTelegramBot } from './bots/telegram.js';
 import { webhookCallback } from 'grammy';
-import { initDiscordBot } from './bots/discord.js';
+import { initDiscordBot, processDiscordCommand } from './bots/discord.js';
 import { handleWhatsAppVerification, handleWhatsAppIncoming, processWhatsAppMessage, sendWhatsAppAlert } from './bots/whatsapp.js';
 
 import fs from 'node:fs';
@@ -259,6 +259,18 @@ app.post('/api/bot/whatsapp-chat', async (req, res) => {
   } catch (err) {
     console.error('Error processing WhatsApp chat:', err);
     res.status(500).json({ status: 'error', message: 'Failed to process WhatsApp message' });
+  }
+});
+
+// 9d. Discord Command Processor & Live Chat Endpoint
+app.post('/api/bot/discord-chat', async (req, res) => {
+  try {
+    const text = req.body?.message || '';
+    const result = await processDiscordCommand(text, 'web_client');
+    res.json({ status: 'success', result });
+  } catch (err) {
+    console.error('Error processing Discord chat:', err);
+    res.status(500).json({ status: 'error', message: 'Failed to process Discord command' });
   }
 });
 

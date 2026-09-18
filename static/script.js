@@ -1328,3 +1328,157 @@ function shareMatchToWhatsApp(home, away, homeScore, awayScore, status, league) 
   const text = `⚽ *${home} vs ${away}*\n🏆 ${league}\n📊 Score: ${homeScore} - ${awayScore}\n⏱️ Status: ${status}\n\nTrack European Football live on GoalHub: https://goalhub-six.vercel.app`;
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 }
+
+// ===================================================
+// 14. Discord Bot Interactive Simulator & Preview
+// ===================================================
+function openDiscordModal() {
+  const modal = document.getElementById('discordModal');
+  if (modal) modal.classList.add('open');
+}
+
+function closeDiscordModal(e) {
+  if (e && e.target !== e.currentTarget && !e.target.classList.contains('modal-close-btn')) return;
+  const modal = document.getElementById('discordModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function sendQuickDiscord(cmd) {
+  const input = document.getElementById('dcChatInput');
+  if (input) {
+    input.value = cmd;
+    submitDiscordMessage(cmd);
+  }
+}
+
+function handleDiscordChatSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('dcChatInput');
+  const text = input?.value.trim();
+  if (!text) return;
+  input.value = '';
+  submitDiscordMessage(text);
+}
+
+async function submitDiscordMessage(commandText) {
+  const chatBody = document.getElementById('dcChatBody');
+  if (!chatBody) return;
+
+  const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // 1. User message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'dc-message';
+  userMsg.innerHTML = `
+    <div class="dc-avatar user-avatar">👤</div>
+    <div class="dc-content">
+      <div class="dc-author-row">
+        <span class="dc-author">You</span>
+        <span class="dc-timestamp">Today at ${nowStr}</span>
+      </div>
+      <div class="dc-text">${escapeHtml(commandText)}</div>
+    </div>
+  `;
+  chatBody.appendChild(userMsg);
+
+  // 2. Typing indicator
+  const typingMsg = document.createElement('div');
+  typingMsg.className = 'dc-message';
+  typingMsg.id = 'dcTyping';
+  typingMsg.innerHTML = `
+    <div class="dc-avatar">⚽</div>
+    <div class="dc-content">
+      <div class="dc-author-row">
+        <span class="dc-author">GoalHub</span>
+        <span class="dc-bot-tag">BOT</span>
+      </div>
+      <div class="dc-text" style="color:#949ba4; font-style:italic;">GoalHub is querying live football feed…</div>
+    </div>
+  `;
+  chatBody.appendChild(typingMsg);
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  try {
+    const res = await fetch('/api/bot/discord-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: commandText })
+    });
+    const data = await res.json();
+    document.getElementById('dcTyping')?.remove();
+
+    const r = data.result;
+    const botMsg = document.createElement('div');
+    botMsg.className = 'dc-message';
+
+    let contentHtml = '';
+
+    if (r?.content) {
+      contentHtml += `<div class="dc-text">${escapeHtml(r.content)}</div>`;
+    }
+
+    if (r?.embeds && r.embeds.length > 0) {
+      for (const em of r.embeds) {
+        const d = em.data || em;
+        const colorHex = d.color ? `#${d.color.toString(16).padStart(6, '0')}` : '#10b981';
+
+        let fieldsHtml = '';
+        if (d.fields && d.fields.length > 0) {
+          fieldsHtml = `
+            <div class="dc-embed-fields">
+              ${d.fields.map(f => `
+                <div class="dc-embed-field">
+                  <strong>${escapeHtml(f.name)}</strong>
+                  <span>${formatDiscordMarkdown(f.value)}</span>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+
+        contentHtml += `
+          <div class="dc-embed" style="border-left-color: ${colorHex}">
+            <div class="dc-embed-header">
+              <div>
+                ${d.title ? `<div class="dc-embed-title">${escapeHtml(d.title)}</div>` : ''}
+                ${d.description ? `<div class="dc-embed-desc">${formatDiscordMarkdown(d.description)}</div>` : ''}
+              </div>
+              ${d.thumbnail?.url ? `<img src="${d.thumbnail.url}" class="dc-embed-thumb" alt="thumb">` : ''}
+            </div>
+            ${fieldsHtml}
+            ${d.footer?.text ? `<div class="dc-embed-footer">${escapeHtml(d.footer.text)}</div>` : ''}
+          </div>
+        `;
+      }
+    }
+
+    botMsg.innerHTML = `
+      <div class="dc-avatar">⚽</div>
+      <div class="dc-content">
+        <div class="dc-author-row">
+          <span class="dc-author">GoalHub</span>
+          <span class="dc-bot-tag">BOT</span>
+          <span class="dc-timestamp">Today at ${nowStr}</span>
+        </div>
+        ${contentHtml}
+      </div>
+    `;
+
+    chatBody.appendChild(botMsg);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  } catch (err) {
+    document.getElementById('dcTyping')?.remove();
+    showToast('Failed to reach Discord command processor.');
+  }
+}
+
+function formatDiscordMarkdown(text) {
+  if (!text) return '';
+  let out = escapeHtml(text);
+  out = out.replace(/```([\s\S]*?)```/g, '<pre style="background:#1e1f22; padding:8px 10px; border-radius:4px; font-family:\'IBM Plex Mono\',monospace; font-size:0.8rem; overflow-x:auto; margin:6px 0;"><code>$1</code></pre>');
+  out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
+  out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  out = out.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  out = out.replace(/\n/g, '<br>');
+  return out;
+}

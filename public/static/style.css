@@ -1472,3 +1472,290 @@ body {
 .wa-verify-btn:hover {
   opacity: 0.9;
 }
+
+/* ===================================================
+   DISCORD BOT SIMULATOR & INTERFACE
+=================================================== */
+.discord-modal-content {
+  max-width: 700px;
+  background: #313338;
+  border: 1px solid #3f4147;
+  border-radius: 14px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.discord-app-frame {
+  display: flex;
+  flex-direction: column;
+  height: 520px;
+  background: #313338;
+}
+
+.dc-header {
+  background: #2b2d31;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #1f2023;
+}
+
+.dc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.dc-hash {
+  color: #80848e;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.dc-header-left h4 {
+  color: #f2f3f5;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dc-topic {
+  color: #949ba4;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dc-invite-btn {
+  background: #5865f2;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.dc-invite-btn:hover {
+  background: #4752c4;
+}
+
+.dc-chat-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #313338;
+}
+
+.dc-message {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.dc-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #5865f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.dc-avatar.user-avatar {
+  background: #10b981;
+}
+
+.dc-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dc-author-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.dc-author {
+  color: #f2f3f5;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.dc-bot-tag {
+  background: #5865f2;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.dc-timestamp {
+  color: #949ba4;
+  font-size: 0.72rem;
+}
+
+.dc-text {
+  color: #dbdee1;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.dc-text code {
+  background: #2b2d31;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.82rem;
+  color: #00a8fc;
+}
+
+/* Discord Embed Card */
+.dc-embed {
+  background: #2b2d31;
+  border-left: 4px solid #10b981;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-top: 8px;
+  max-width: 540px;
+}
+
+.dc-embed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.dc-embed-title {
+  color: #f2f3f5;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.dc-embed-desc {
+  color: #dbdee1;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+}
+
+.dc-embed-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-left: 10px;
+}
+
+.dc-embed-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.dc-embed-field strong {
+  color: #949ba4;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.dc-embed-field span {
+  color: #dbdee1;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.dc-embed-footer {
+  color: #949ba4;
+  font-size: 0.72rem;
+  margin-top: 10px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dc-chips-row {
+  display: flex;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #2b2d31;
+  overflow-x: auto;
+  border-top: 1px solid #1f2023;
+}
+
+.dc-chip {
+  background: #383a40;
+  border: 1px solid #4e5058;
+  color: #dbdee1;
+  font-size: 0.75rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.dc-chip:hover {
+  background: #5865f2;
+  border-color: #5865f2;
+  color: #fff;
+}
+
+.dc-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #383a40;
+  margin: 10px 14px;
+  border-radius: 8px;
+}
+
+.dc-input-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #f2f3f5;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.dc-send-btn {
+  background: #5865f2;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dc-send-btn:hover {
+  background: #4752c4;
+}

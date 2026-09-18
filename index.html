@@ -21,8 +21,9 @@
       <button class="nav-btn" data-view="matches" onclick="navigateTo('matches')">📅 Matches & Schedules</button>
       <button class="nav-btn" data-view="squads" onclick="navigateTo('squads')">👥 Squads</button>
       <button class="nav-btn" data-view="standings" onclick="navigateTo('standings')">🏆 Standings</button>
-      <button class="nav-btn alerts-nav-highlight" data-view="alerts" onclick="openAlertsModal()">🔔 Alerts Hub</button>
-      <button class="nav-btn" onclick="openWhatsAppModal()" style="background:#25d366; color:#000; font-weight:700; border-color:#25d366; box-shadow:0 0 12px rgba(37,211,102,0.3);">💬 WhatsApp Bot</button>
+      <button class="nav-btn alerts-nav-highlight" data-view="alerts" onclick="openAlertsModal()">🔔 Alerts</button>
+      <button class="nav-btn" onclick="openWhatsAppModal()" style="background:#25d366; color:#000; font-weight:700; border-color:#25d366; box-shadow:0 0 12px rgba(37,211,102,0.3);">💬 WhatsApp</button>
+      <button class="nav-btn" onclick="openDiscordModal()" style="background:#5865f2; color:#fff; font-weight:700; border-color:#5865f2; box-shadow:0 0 12px rgba(88,101,242,0.35);">🎮 Discord Bot</button>
     </nav>
   </div>
 </header>
@@ -280,6 +281,62 @@ Welcome to GoalHub on WhatsApp! Try clicking any quick button below or type a me
         <button type="button" class="wa-verify-btn" onclick="verifyCallMeBot()">⚡ Send Test Goal to Phone</button>
       </div>
       <div id="callMeResult" style="font-size:0.85rem; margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DISCORD BOT MODAL & SIMULATOR (COMMUNITY FEED) -->
+<div id="discordModal" class="modal-backdrop" onclick="closeDiscordModal(event)">
+  <div class="modal-card discord-modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close-btn" onclick="closeDiscordModal()">×</button>
+
+    <div class="discord-app-frame">
+      <!-- Discord Channel Header -->
+      <div class="dc-header">
+        <div class="dc-header-left">
+          <span class="dc-hash">#</span>
+          <h4>goalhub-live-feed</h4>
+          <span class="dc-topic">| ⚽ Real-time European Football, Official Squads, Fixtures & Standings</span>
+        </div>
+        <div class="dc-header-right">
+          <a href="https://discord.com/developers/applications" target="_blank" class="dc-invite-btn">
+            + Invite Bot to Discord
+          </a>
+        </div>
+      </div>
+
+      <!-- Discord Message Stream -->
+      <div class="dc-chat-body" id="dcChatBody">
+        <div class="dc-message">
+          <div class="dc-avatar">⚽</div>
+          <div class="dc-content">
+            <div class="dc-author-row">
+              <span class="dc-author">GoalHub</span>
+              <span class="dc-bot-tag">BOT</span>
+              <span class="dc-timestamp">Today at 12:00</span>
+            </div>
+            <div class="dc-text">
+              Welcome to the official <strong>GoalHub Discord Bot</strong>! Try sending any command like <code>!squad barcelona</code>, <code>!next arsenal</code>, <code>!live</code>, <code>!standings pl</code>, or <code>!h2h barcelona vs real madrid</code>.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Discord Quick Chips -->
+      <div class="dc-chips-row">
+        <button class="dc-chip" onclick="sendQuickDiscord('!squad barcelona')">👥 !squad barcelona</button>
+        <button class="dc-chip" onclick="sendQuickDiscord('!next arsenal')">⚡ !next arsenal</button>
+        <button class="dc-chip" onclick="sendQuickDiscord('!live')">🔴 !live</button>
+        <button class="dc-chip" onclick="sendQuickDiscord('!standings pl')">🏆 !standings pl</button>
+        <button class="dc-chip" onclick="sendQuickDiscord('!h2h barcelona vs real madrid')">⚔️ !h2h el clasico</button>
+        <button class="dc-chip" onclick="sendQuickDiscord('!help')">❓ !help</button>
+      </div>
+
+      <!-- Discord Input Bar -->
+      <form class="dc-input-bar" id="dcChatForm" onsubmit="handleDiscordChatSubmit(event)">
+        <input type="text" id="dcChatInput" placeholder="Message #goalhub-live-feed (Type '!squad arsenal', '!live', '!next bayern')..." autocomplete="off">
+        <button type="submit" class="dc-send-btn">Send</button>
+      </form>
     </div>
   </div>
 </div>
