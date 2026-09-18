@@ -15,9 +15,9 @@ import { handleWhatsAppVerification, handleWhatsAppIncoming, processWhatsAppMess
 
 import fs from 'node:fs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '..');
+const currentFile = (typeof import.meta !== 'undefined' && import.meta.url) ? fileURLToPath(import.meta.url) : '';
+const currentDir = currentFile ? path.dirname(currentFile) : process.cwd();
+const projectRoot = currentFile ? path.resolve(currentDir, '..') : process.cwd();
 
 const app = express();
 app.use(cors());
