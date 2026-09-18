@@ -11,7 +11,7 @@ import { handleNaturalLanguageQuery } from './services/nlpQuery.js';
 import { initTelegramBot, getTelegramBot } from './bots/telegram.js';
 import { webhookCallback } from 'grammy';
 import { initDiscordBot } from './bots/discord.js';
-import { handleWhatsAppVerification, handleWhatsAppIncoming } from './bots/whatsapp.js';
+import { handleWhatsAppVerification, handleWhatsAppIncoming, processWhatsAppMessage, sendWhatsAppAlert } from './bots/whatsapp.js';
 
 import fs from 'node:fs';
 
@@ -245,6 +245,23 @@ app.use('/api/webhook/telegram', (req, res) => {
   return webhookCallback(bot, 'express')(req, res);
 });
 
+// 9c. Easy WhatsApp Simulator & Live Chat Endpoint
+app.post('/api/bot/whatsapp-chat', async (req, res) => {
+  try {
+    const text = req.body?.message || '';
+    const from = req.body?.from || 'user';
+    const reply = await processWhatsAppMessage(text, from);
+    res.json({
+      status: 'success',
+      reply,
+      waLink: `https://wa.me/?text=${encodeURIComponent(reply)}`
+    });
+  } catch (err) {
+    console.error('Error processing WhatsApp chat:', err);
+    res.status(500).json({ status: 'error', message: 'Failed to process WhatsApp message' });
+  }
+});
+
 // 10. Test Alert Trigger (Multi-Channel Dispatch Test)
 app.post('/api/test/trigger-alert', async (req, res) => {
   try {
@@ -282,6 +299,25 @@ app.post('/api/test/trigger-alert', async (req, res) => {
   } catch (err) {
     console.error('Error triggering test alert:', err);
     res.status(500).json({ status: 'error', message: 'Failed to trigger test alert' });
+  }
+});
+
+// 11. Test CallMeBot Direct WhatsApp Alert
+app.post('/api/test/callmebot', async (req, res) => {
+  try {
+    const { phone, apiKey } = req.body;
+    if (!phone || !apiKey) {
+      return res.status(400).json({ status: 'error', message: 'Phone and apiKey are required' });
+    }
+    const success = await sendWhatsAppAlert(
+      phone,
+      '⚽ *GoalHub Live Alert Verification!*\n\nYour WhatsApp is successfully connected to GoalHub! You will receive live goals & kickoff updates directly in this chat.',
+      apiKey
+    );
+    res.json({ status: success ? 'success' : 'error' });
+  } catch (err) {
+    console.error('CallMeBot test error:', err);
+    res.status(500).json({ status: 'error', message: 'Failed to send WhatsApp message' });
   }
 });
 

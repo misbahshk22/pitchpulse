@@ -18,27 +18,9 @@ export function handleWhatsAppVerification(req: Request, res: Response): void {
   }
 }
 
-export async function handleWhatsAppIncoming(req: Request, res: Response): Promise<void> {
-  // Acknowledge Meta immediately to avoid retries
-  res.sendStatus(200);
-
-  const body = req.body;
-  if (body.object !== 'whatsapp_business_account') return;
-
-  const entry = body.entry?.[0];
-  const changes = entry?.changes?.[0];
-  const message = changes?.value?.messages?.[0];
-
-  if (!message || message.type !== 'text') return;
-
-  const fromNumber = message.from; // Sender WhatsApp phone number
-  const userText = message.text?.body?.trim() || '';
-
-  console.log(`[WhatsApp Inbound] Message from ${fromNumber}: "${userText}"`);
-
+export async function processWhatsAppMessage(userText: string, fromNumber: string = 'user'): Promise<string> {
+  const clean = (userText || '').trim().toLowerCase();
   let replyText = '';
-
-  const clean = userText.toLowerCase();
 
   // 1. "live"
   if (clean === 'live' || clean === '/live') {
@@ -46,9 +28,9 @@ export async function handleWhatsAppIncoming(req: Request, res: Response): Promi
     if (live.length === 0) {
       replyText = '⏸️ No live matches currently in progress across the tracked European leagues.';
     } else {
-      replyText = `🔴 LIVE MATCHES (${live.length})\n\n`;
+      replyText = `🔴 *LIVE MATCHES (${live.length})*\n\n`;
       for (const m of live) {
-        replyText += `🏆 ${m.leagueName}\n⏱️ ${m.elapsed ? m.elapsed + "'" : ''} [${m.status}]\n`;
+        replyText += `🏆 *${m.leagueName}*\n⏱️ ${m.elapsed ? m.elapsed + "'" : ''} [${m.status}]\n`;
         replyText += `*${m.homeTeam.name}* ${m.score.home ?? 0} - ${m.score.away ?? 0} *${m.awayTeam.name}*\n\n`;
       }
     }
@@ -84,40 +66,80 @@ export async function handleWhatsAppIncoming(req: Request, res: Response): Promi
     }
   }
 
+  return replyText;
+}
+
+export async function handleWhatsAppIncoming(req: Request, res: Response): Promise<void> {
+  // Acknowledge Meta immediately to avoid retries
+  res.sendStatus(200);
+
+  const body = req.body;
+  if (body.object !== 'whatsapp_business_account') return;
+
+  const entry = body.entry?.[0];
+  const changes = entry?.changes?.[0];
+  const message = changes?.value?.messages?.[0];
+
+  if (!message || message.type !== 'text') return;
+
+  const fromNumber = message.from; // Sender WhatsApp phone number
+  const userText = message.text?.body?.trim() || '';
+
+  console.log(`[WhatsApp Inbound] Message from ${fromNumber}: "${userText}"`);
+
+  const replyText = await processWhatsAppMessage(userText, fromNumber);
   await sendWhatsAppAlert(fromNumber, replyText);
 }
 
-export async function sendWhatsAppAlert(toPhoneNumber: string, text: string): Promise<boolean> {
-  if (!CONFIG.whatsappAccessToken || !CONFIG.whatsappPhoneNumberId) {
-    console.log(`[WhatsApp Standby] Simulated alert to ${toPhoneNumber}:\n${text}`);
-    return true;
+export async function sendWhatsAppAlert(toPhoneNumber: string, text: string, apiKey?: string): Promise<boolean> {
+  // 1. CallMeBot: Simplest personal WhatsApp delivery (zero Meta portal setup)
+  const callMeKey = apiKey || process.env.CALLMEBOT_API_KEY;
+  if (callMeKey) {
+    try {
+      const cleanPhone = toPhoneNumber.replace(/[^0-9]/g, '');
+      const encoded = encodeURIComponent(text);
+      const url = `https://api.callmebot.com/whatsapp.php?phone=${cleanPhone}&text=${encoded}&apikey=${callMeKey}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        console.log(`[CallMeBot] Alert successfully sent to ${toPhoneNumber}!`);
+        return true;
+      }
+    } catch (e) {
+      console.error('[CallMeBot] Request failed:', e);
+    }
   }
 
-  try {
-    const url = `https://graph.facebook.com/v20.0/${CONFIG.whatsappPhoneNumberId}/messages`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${CONFIG.whatsappAccessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to: toPhoneNumber,
-        type: 'text',
-        text: { body: text }
-      })
-    });
+  // 2. Meta Cloud API (if configured)
+  if (CONFIG.whatsappAccessToken && CONFIG.whatsappPhoneNumberId) {
+    try {
+      const url = `https://graph.facebook.com/v20.0/${CONFIG.whatsappPhoneNumberId}/messages`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${CONFIG.whatsappAccessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: toPhoneNumber,
+          type: 'text',
+          text: { body: text }
+        })
+      });
 
-    if (!response.ok) {
-      const errJson = await response.json();
-      console.error('[WhatsApp Cloud API] Send error:', errJson);
+      if (!response.ok) {
+        const errJson = await response.json();
+        console.error('[WhatsApp Cloud API] Send error:', errJson);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error(`[WhatsApp API] Request failed for ${toPhoneNumber}:`, err);
       return false;
     }
-
-    return true;
-  } catch (err) {
-    console.error(`[WhatsApp API] Request failed for ${toPhoneNumber}:`, err);
-    return false;
   }
+
+  console.log(`[WhatsApp Standby] Simulated alert to ${toPhoneNumber}:\n${text}`);
+  return true;
 }

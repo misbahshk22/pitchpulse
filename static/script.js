@@ -1186,3 +1186,145 @@ function formatKickoffDate(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
+
+// ===================================================
+// 13. WhatsApp Bot Interactive Simulator & Share
+// ===================================================
+function openWhatsAppModal() {
+  const modal = document.getElementById('whatsAppModal');
+  if (modal) modal.classList.add('open');
+}
+
+function closeWhatsAppModal(e) {
+  if (e && e.target !== e.currentTarget && !e.target.classList.contains('modal-close-btn')) return;
+  const modal = document.getElementById('whatsAppModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function sendQuickWa(promptText) {
+  const input = document.getElementById('waChatInput');
+  if (input) {
+    input.value = promptText;
+    submitWaMessage(promptText);
+  }
+}
+
+function handleWaChatSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('waChatInput');
+  const text = input?.value.trim();
+  if (!text) return;
+  input.value = '';
+  submitWaMessage(text);
+}
+
+async function submitWaMessage(userText) {
+  const chatBody = document.getElementById('waChatBody');
+  if (!chatBody) return;
+
+  // Append user bubble
+  const userMsg = document.createElement('div');
+  userMsg.className = 'wa-msg wa-msg-user';
+  userMsg.innerHTML = `
+    <div class="wa-bubble">
+      ${escapeHtml(userText)}
+      <div class="wa-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ✓✓</div>
+    </div>
+  `;
+  chatBody.appendChild(userMsg);
+
+  // Typing indicator
+  const typingMsg = document.createElement('div');
+  typingMsg.className = 'wa-msg wa-msg-bot';
+  typingMsg.id = 'waTyping';
+  typingMsg.innerHTML = `
+    <div class="wa-bubble" style="color:var(--sideline); font-style:italic;">
+      GoalHub is typing…
+    </div>
+  `;
+  chatBody.appendChild(typingMsg);
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  try {
+    const res = await fetch('/api/bot/whatsapp-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userText, from: 'user' })
+    });
+    const data = await res.json();
+    document.getElementById('waTyping')?.remove();
+
+    const reply = data.reply || '⚽ No response received.';
+    const waLink = data.waLink || `https://wa.me/?text=${encodeURIComponent(reply)}`;
+
+    // Convert WhatsApp *bold* syntax to HTML <strong>
+    const formattedHtml = formatWhatsAppText(reply);
+
+    const botMsg = document.createElement('div');
+    botMsg.className = 'wa-msg wa-msg-bot';
+    botMsg.innerHTML = `
+      <div class="wa-bubble">
+        ${formattedHtml}
+        <div class="wa-action-row">
+          <a href="${waLink}" target="_blank" class="wa-share-direct-btn">
+            📲 Open & Send in WhatsApp
+          </a>
+        </div>
+        <div class="wa-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+      </div>
+    `;
+    chatBody.appendChild(botMsg);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  } catch (err) {
+    document.getElementById('waTyping')?.remove();
+    showToast('Failed to reach WhatsApp bot endpoint.');
+  }
+}
+
+function formatWhatsAppText(text) {
+  let out = escapeHtml(text);
+  out = out.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+  return out;
+}
+
+function escapeHtml(str) {
+  return (str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+async function verifyCallMeBot() {
+  const phone = document.getElementById('callMePhone')?.value.trim();
+  const apiKey = document.getElementById('callMeKey')?.value.trim();
+  const resultEl = document.getElementById('callMeResult');
+
+  if (!phone || !apiKey) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:#ef4444">Please enter both your phone number and CallMeBot API key.</span>';
+    return;
+  }
+
+  if (resultEl) resultEl.innerHTML = '<span style="color:var(--sideline)">Sending live test goal alert to your phone…</span>';
+
+  try {
+    const res = await fetch('/api/test/callmebot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, apiKey })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      if (resultEl) resultEl.innerHTML = '<span style="color:var(--pitch-green); font-weight:600;">✅ Success! Goal alert sent to your WhatsApp. Check your phone!</span>';
+      showToast('✅ WhatsApp message delivered to your phone!');
+    } else {
+      if (resultEl) resultEl.innerHTML = '<span style="color:#ef4444">Could not send alert. Check phone format (+country code) and API key.</span>';
+    }
+  } catch (e) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:#ef4444">Request failed. Check internet connection.</span>';
+  }
+}
+
+function shareMatchToWhatsApp(home, away, homeScore, awayScore, status, league) {
+  const text = `⚽ *${home} vs ${away}*\n🏆 ${league}\n📊 Score: ${homeScore} - ${awayScore}\n⏱️ Status: ${status}\n\nTrack European Football live on GoalHub: https://goalhub-six.vercel.app`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+}

@@ -22,6 +22,7 @@
       <button class="nav-btn" data-view="squads" onclick="navigateTo('squads')">👥 Squads</button>
       <button class="nav-btn" data-view="standings" onclick="navigateTo('standings')">🏆 Standings</button>
       <button class="nav-btn alerts-nav-highlight" data-view="alerts" onclick="openAlertsModal()">🔔 Alerts Hub</button>
+      <button class="nav-btn" onclick="openWhatsAppModal()" style="background:#25d366; color:#000; font-weight:700; border-color:#25d366; box-shadow:0 0 12px rgba(37,211,102,0.3);">💬 WhatsApp Bot</button>
     </nav>
   </div>
 </header>
@@ -202,6 +203,83 @@
           <p style="color:var(--sideline)">Loading subscriptions...</p>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- WHATSAPP BOT MODAL & SIMULATOR (EASY TEST) -->
+<div id="whatsAppModal" class="modal-backdrop" onclick="closeWhatsAppModal(event)">
+  <div class="modal-card whatsapp-modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close-btn" onclick="closeWhatsAppModal()">×</button>
+    
+    <div class="whatsapp-phone-frame">
+      <!-- WhatsApp Top Header -->
+      <div class="wa-header">
+        <div class="wa-header-left">
+          <div class="wa-avatar">⚽</div>
+          <div class="wa-user-info">
+            <h4>GoalHub Bot</h4>
+            <span class="wa-status"><span class="wa-online-dot"></span> online</span>
+          </div>
+        </div>
+        <div class="wa-header-right">
+          <span class="wa-verified-badge">✓ Official Bot</span>
+        </div>
+      </div>
+
+      <!-- Chat Feed -->
+      <div class="wa-chat-body" id="waChatBody">
+        <div class="wa-msg wa-msg-bot">
+          <div class="wa-bubble">⚽ <strong>GoalHub WhatsApp Assistant</strong>
+
+Welcome to GoalHub on WhatsApp! Try clicking any quick button below or type a message:
+<div class="wa-time">Just now ✓✓</div></div>
+        </div>
+      </div>
+
+      <!-- Prompt Chips -->
+      <div class="wa-chips-row">
+        <button class="wa-chip" onclick="sendQuickWa('live')">🔴 live</button>
+        <button class="wa-chip" onclick="sendQuickWa('next arsenal match')">⏱️ next arsenal match</button>
+        <button class="wa-chip" onclick="sendQuickWa('follow Barcelona')">🔔 follow Barcelona</button>
+        <button class="wa-chip" onclick="sendQuickWa('premier league standings')">🏆 premier league table</button>
+        <button class="wa-chip" onclick="sendQuickWa('real madrid squad')">👥 real madrid squad</button>
+      </div>
+
+      <!-- Message Input -->
+      <form class="wa-input-bar" id="waChatForm" onsubmit="handleWaChatSubmit(event)">
+        <input type="text" id="waChatInput" placeholder="Type a message (e.g. 'live', 'next match', 'squad')..." autocomplete="off">
+        <button type="submit" class="wa-send-btn" id="waSendBtn">➤</button>
+      </form>
+    </div>
+
+    <!-- Easy Real Phone Option via CallMeBot -->
+    <div class="wa-real-connect-card">
+      <div class="wa-real-header">
+        <div style="font-size:1.4rem;">📱</div>
+        <div>
+          <h4>Get Real WhatsApp Alerts on Your Phone (Takes 30 Seconds)</h4>
+          <p>Zero developer accounts or credit cards required. Connects directly to your personal WhatsApp:</p>
+        </div>
+      </div>
+
+      <div class="wa-steps-list">
+        <div class="wa-step">
+          <span class="wa-step-num">1</span>
+          <span>Open WhatsApp and message CallMeBot: <a href="https://wa.me/34911085343?text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" class="wa-link-btn">👉 Click to Send "I allow callmebot to send me messages"</a></span>
+        </div>
+        <div class="wa-step">
+          <span class="wa-step-num">2</span>
+          <span>CallMeBot replies with your API key. Enter your phone and key below to test:</span>
+        </div>
+      </div>
+
+      <div class="wa-connect-form">
+        <input type="text" id="callMePhone" class="form-control" placeholder="Phone with country code (e.g. +923001234567)">
+        <input type="text" id="callMeKey" class="form-control" placeholder="API Key (e.g. 123456)">
+        <button type="button" class="wa-verify-btn" onclick="verifyCallMeBot()">⚡ Send Test Goal to Phone</button>
+      </div>
+      <div id="callMeResult" style="font-size:0.85rem; margin-top:8px;"></div>
     </div>
   </div>
 </div>
