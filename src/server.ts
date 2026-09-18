@@ -8,7 +8,8 @@ import { footballApi } from './services/footballApi.js';
 import { adaptivePoller } from './services/poller.js';
 import { notificationDispatcher } from './services/notificationDispatcher.js';
 import { handleNaturalLanguageQuery } from './services/nlpQuery.js';
-import { initTelegramBot } from './bots/telegram.js';
+import { initTelegramBot, getTelegramBot } from './bots/telegram.js';
+import { webhookCallback } from 'grammy';
 import { initDiscordBot } from './bots/discord.js';
 import { handleWhatsAppVerification, handleWhatsAppIncoming } from './bots/whatsapp.js';
 
@@ -234,6 +235,15 @@ app.get('/api/live/stream', async (req, res) => {
 // 9. WhatsApp Cloud API Webhook Endpoints
 app.get('/api/webhook/whatsapp', handleWhatsAppVerification);
 app.post('/api/webhook/whatsapp', handleWhatsAppIncoming);
+
+// 9b. Telegram Webhook Endpoint (Serverless on Vercel)
+app.use('/api/webhook/telegram', (req, res) => {
+  const bot = getTelegramBot();
+  if (!bot) {
+    return res.status(200).send('Telegram bot not configured. Set TELEGRAM_BOT_TOKEN.');
+  }
+  return webhookCallback(bot, 'express')(req, res);
+});
 
 // 10. Test Alert Trigger (Multi-Channel Dispatch Test)
 app.post('/api/test/trigger-alert', async (req, res) => {

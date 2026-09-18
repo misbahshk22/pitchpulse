@@ -185,11 +185,20 @@ export function initTelegramBot(): void {
       console.error('[Telegram Bot] Unhandled bot error:', err);
     });
 
-    botInstance.start();
-    console.log('[Telegram Bot] grammY bot listener started successfully!');
+    if (!process.env.VERCEL) {
+      botInstance.start();
+      console.log('[Telegram Bot] grammY bot listener started successfully!');
+    }
   } catch (err) {
     console.error('[Telegram Bot] Failed to initialize bot:', err);
   }
+}
+
+export function getTelegramBot(): Bot | null {
+  if (!botInstance && CONFIG.telegramBotToken) {
+    initTelegramBot();
+  }
+  return botInstance;
 }
 
 export async function sendTelegramAlert(chatId: string, message: string): Promise<boolean> {
