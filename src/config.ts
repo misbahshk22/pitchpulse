@@ -113,5 +113,5 @@ export const CONFIG = {
   whatsappPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
   whatsappVerifyToken: process.env.WHATSAPP_VERIFY_TOKEN || 'matchday_verify_secret',
 
-  databasePath: process.env.DATABASE_PATH || (process.env.VERCEL ? '/tmp/matchday.db' : './matchday.db')
+  databasePath: process.env.DATABASE_PATH || ((process.env.VERCEL || process.env.NETLIFY) ? '/tmp/matchday.db' : './matchday.db')
 };

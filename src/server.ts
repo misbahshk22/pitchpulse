@@ -45,6 +45,17 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(projectRoot, 'index.html'));
 });
 
+// Path normalization middleware for serverless environments (Netlify / Vercel rewrites)
+app.use((req, _res, next) => {
+  if (req.url.startsWith('/.netlify/functions/api')) {
+    req.url = req.url.replace('/.netlify/functions/api', '');
+  }
+  if (!req.url.startsWith('/api') && !req.url.startsWith('/static') && req.url !== '/' && !req.url.startsWith('/?')) {
+    req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
+  }
+  next();
+});
+
 // 1. Get tracked leagues
 app.get('/api/leagues', (req, res) => {
   res.json({
@@ -355,7 +366,7 @@ async function bootstrap() {
   });
 }
 
-if (!process.env.VERCEL) {
+if (!process.env.VERCEL && !process.env.NETLIFY) {
   bootstrap().catch(err => {
     console.error('Fatal bootstrap error:', err);
     process.exit(1);
