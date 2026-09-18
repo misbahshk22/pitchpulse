@@ -1,5 +1,7 @@
 node_modules/
 .env
 *.log
+*.db
+matchday.db
 scratch/
 .DS_Store

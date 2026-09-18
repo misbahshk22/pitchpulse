@@ -3,13 +3,19 @@
   "builds": [
     {
       "src": "src/server.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "index.html",
+          "static/**"
+        ]
+      }
     }
   ],
   "routes": [
     {
       "src": "/static/(.*)",
-      "dest": "/static/"
+      "dest": "/static/$1"
     },
     {
       "src": "/(.*)",

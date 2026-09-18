@@ -281,10 +281,12 @@ async function bootstrap() {
   });
 }
 
-bootstrap().catch(err => {
-  console.error('Fatal bootstrap error:', err);
-  process.exit(1);
-});
+if (!process.env.VERCEL) {
+  bootstrap().catch(err => {
+    console.error('Fatal bootstrap error:', err);
+    process.exit(1);
+  });
+}
 
 export default app;
 export { app };

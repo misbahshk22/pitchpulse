@@ -9,6 +9,9 @@
     "start": "tsx src/server.ts",
     "build": "tsc"
   },
+  "engines": {
+    "node": ">=22.x"
+  },
   "keywords": [
     "football",
     "fixtures",
