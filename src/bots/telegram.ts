@@ -18,7 +18,7 @@ export function initTelegramBot(): void {
 
     // /start and /help command
     botInstance.command(['start', 'help'], async (ctx) => {
-      const welcome = `⚽ <b>Welcome to PitchPulse Bot!</b>\n\n` +
+      const welcome = `⚽ <b>Welcome to GoalHub Bot!</b>\n\n` +
         `Your real-time companion for the <b>Top 5 European Leagues & UEFA Competitions</b>.\n\n` +
         `<b>Available Commands:</b>\n` +
         `• /live — See active matches & live scores\n` +

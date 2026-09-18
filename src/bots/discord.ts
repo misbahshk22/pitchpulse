@@ -36,10 +36,10 @@ export function initDiscordBot(): void {
       const content = message.content.trim();
 
       // Help command
-      if (content === '!help' || content === '!pitchpulse' || content === '!matchday') {
+      if (content === '!help' || content === '!goalhub' || content === '!pitchpulse' || content === '!matchday') {
         const embed = new EmbedBuilder()
           .setColor(0x10b981)
-          .setTitle('⚽ PitchPulse Discord Bot')
+          .setTitle('⚽ GoalHub Discord Bot')
           .setDescription('Real-time fixture & live tracking for Top 5 Leagues & UEFA Competitions.')
           .addFields(
             { name: '!live', value: 'Check all currently active matches with live scores.', inline: true },
@@ -48,7 +48,7 @@ export function initDiscordBot(): void {
             { name: '!follow <team>', value: 'Subscribe this channel to real-time goal alerts.', inline: true },
             { name: '!ask <question>', value: 'Ask any fixture query (e.g. `!ask next arsenal match`).', inline: true }
           )
-          .setFooter({ text: 'PitchPulse Multi-Platform Sports Bot' });
+          .setFooter({ text: 'GoalHub Multi-Platform Sports Bot' });
 
         await message.reply({ embeds: [embed] });
         return;
@@ -153,7 +153,7 @@ export function initDiscordBot(): void {
         const result = await handleNaturalLanguageQuery(query);
         const embed = new EmbedBuilder()
           .setColor(0x10b981)
-          .setTitle('🤖 PitchPulse Assistant')
+          .setTitle('🤖 GoalHub Assistant')
           .setDescription(result.message);
 
         if (result.matches && result.matches.length > 0) {

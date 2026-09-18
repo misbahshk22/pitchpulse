@@ -1,5 +1,5 @@
 {
-  "name": "pitchpulse-football-tracker",
+  "name": "goalhub-football-tracker",
   "version": "1.0.0",
   "description": "Football fixture tracking bot and web dashboard for Top 5 European Leagues and UEFA Competitions",
   "main": "src/server.ts",

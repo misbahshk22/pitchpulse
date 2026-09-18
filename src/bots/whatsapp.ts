@@ -75,7 +75,7 @@ export async function handleWhatsAppIncoming(req: Request, res: Response): Promi
   // 3. Fallback to NLP Assistant
   else {
     const result = await handleNaturalLanguageQuery(userText);
-    replyText = `⚽ *PitchPulse Bot*\n${result.message}\n\n`;
+    replyText = `⚽ *GoalHub Bot*\n${result.message}\n\n`;
     if (result.matches && result.matches.length > 0) {
       for (const m of result.matches.slice(0, 3)) {
         const score = m.score.home !== null ? `${m.score.home} - ${m.score.away}` : 'vs';

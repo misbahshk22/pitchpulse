@@ -270,7 +270,7 @@ async function bootstrap() {
 
   app.listen(CONFIG.port, () => {
     console.log(`====================================================`);
-    console.log(`⚽ PitchPulse European Football Platform is running!`);
+    console.log(`⚽ GoalHub European Football Platform is running!`);
     console.log(`🌐 Web Dashboard: http://localhost:${CONFIG.port}`);
     console.log(`📱 Telegram Bot: ${CONFIG.telegramBotToken ? 'Connected' : 'Standby (Provide TELEGRAM_BOT_TOKEN)'}`);
     console.log(`🎮 Discord Bot:  ${CONFIG.discordBotToken ? 'Connected' : 'Standby (Provide DISCORD_BOT_TOKEN)'}`);

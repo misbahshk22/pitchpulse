@@ -613,7 +613,7 @@ function initEventSource() {
       if (data.type === 'GOAL_ALERT') {
         showToast(`⚽ GOAL! ${data.message}`);
         if (Notification.permission === 'granted') {
-          new Notification('PitchPulse Goal Alert', { body: data.message });
+          new Notification('GoalHub Goal Alert', { body: data.message });
         }
       }
     } catch (e) {}
@@ -1106,8 +1106,8 @@ async function triggerTestAlert() {
     if (data.status === 'success') {
       showToast('⚽ GOAL! Robert Lewandowski has scored! (Live SSE & Push Broadcasted)');
       if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('PitchPulse Goal Alert', {
-          body: '⚽ GOAL! Robert Lewandowski scores a stunning goal! (PitchPulse Live)'
+        new Notification('GoalHub Goal Alert', {
+          body: '⚽ GOAL! Robert Lewandowski scores a stunning goal! (GoalHub Live)'
         });
       }
     }
