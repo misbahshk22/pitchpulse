@@ -285,3 +285,6 @@ bootstrap().catch(err => {
   console.error('Fatal bootstrap error:', err);
   process.exit(1);
 });
+
+export default app;
+export { app };
