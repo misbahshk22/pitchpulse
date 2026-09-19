@@ -70,80 +70,204 @@ export const CLUB_MANAGERS: Record<string, { manager: string; stadium: string }>
   'arsenal': { manager: 'Mikel Arteta', stadium: 'Emirates Stadium' },
   'aston villa': { manager: 'Unai Emery', stadium: 'Villa Park' },
   'bournemouth': { manager: 'Andoni Iraola', stadium: 'Vitality Stadium' },
+  'afc bournemouth': { manager: 'Andoni Iraola', stadium: 'Vitality Stadium' },
   'brentford': { manager: 'Thomas Frank', stadium: 'Gtech Community Stadium' },
   'brighton': { manager: 'Fabian Hürzeler', stadium: 'Amex Stadium' },
+  'brighton & hove albion': { manager: 'Fabian Hürzeler', stadium: 'Amex Stadium' },
   'chelsea': { manager: 'Enzo Maresca', stadium: 'Stamford Bridge' },
   'crystal palace': { manager: 'Oliver Glasner', stadium: 'Selhurst Park' },
-  'everton': { manager: 'Sean Dyche', stadium: 'Goodison Park' },
+  'everton': { manager: 'David Moyes', stadium: 'Goodison Park' },
   'fulham': { manager: 'Marco Silva', stadium: 'Craven Cottage' },
   'ipswich': { manager: 'Kieran McKenna', stadium: 'Portman Road' },
+  'ipswich town': { manager: 'Kieran McKenna', stadium: 'Portman Road' },
   'leicester': { manager: 'Ruud van Nistelrooy', stadium: 'King Power Stadium' },
+  'leicester city': { manager: 'Ruud van Nistelrooy', stadium: 'King Power Stadium' },
   'liverpool': { manager: 'Arne Slot', stadium: 'Anfield' },
   'manchester city': { manager: 'Pep Guardiola', stadium: 'Etihad Stadium' },
+  'man city': { manager: 'Pep Guardiola', stadium: 'Etihad Stadium' },
   'manchester united': { manager: 'Rúben Amorim', stadium: 'Old Trafford' },
+  'man united': { manager: 'Rúben Amorim', stadium: 'Old Trafford' },
+  'man utd': { manager: 'Rúben Amorim', stadium: 'Old Trafford' },
   'newcastle': { manager: 'Eddie Howe', stadium: "St. James' Park" },
+  'newcastle united': { manager: 'Eddie Howe', stadium: "St. James' Park" },
   'nottingham forest': { manager: 'Nuno Espírito Santo', stadium: 'City Ground' },
+  'nottingham': { manager: 'Nuno Espírito Santo', stadium: 'City Ground' },
   'southampton': { manager: 'Ivan Jurić', stadium: "St. Mary's Stadium" },
   'tottenham': { manager: 'Ange Postecoglou', stadium: 'Tottenham Hotspur Stadium' },
+  'tottenham hotspur': { manager: 'Ange Postecoglou', stadium: 'Tottenham Hotspur Stadium' },
+  'spurs': { manager: 'Ange Postecoglou', stadium: 'Tottenham Hotspur Stadium' },
   'west ham': { manager: 'Graham Potter', stadium: 'London Stadium' },
-  'wolverhampton': { manager: 'Gary O\'Neil', stadium: 'Molineux Stadium' },
+  'west ham united': { manager: 'Graham Potter', stadium: 'London Stadium' },
+  'wolverhampton': { manager: 'Vítor Pereira', stadium: 'Molineux Stadium' },
+  'wolverhampton wanderers': { manager: 'Vítor Pereira', stadium: 'Molineux Stadium' },
+  'wolves': { manager: 'Vítor Pereira', stadium: 'Molineux Stadium' },
+
+  // English Championship & Promoted
+  'coventry': { manager: 'Frank Lampard', stadium: 'Coventry Building Society Arena' },
+  'coventry city': { manager: 'Frank Lampard', stadium: 'Coventry Building Society Arena' },
+  'hull': { manager: 'Rubén Sellés', stadium: 'MKM Stadium' },
+  'hull city': { manager: 'Rubén Sellés', stadium: 'MKM Stadium' },
+  'leeds': { manager: 'Daniel Farke', stadium: 'Elland Road' },
+  'leeds united': { manager: 'Daniel Farke', stadium: 'Elland Road' },
+  'sunderland': { manager: 'Régis Le Bris', stadium: 'Stadium of Light' },
+  'sheffield united': { manager: 'Chris Wilder', stadium: 'Bramall Lane' },
+  'sheffield utd': { manager: 'Chris Wilder', stadium: 'Bramall Lane' },
+  'burnley': { manager: 'Scott Parker', stadium: 'Turf Moor' },
+  'luton': { manager: 'Rob Edwards', stadium: 'Kenilworth Road' },
+  'luton town': { manager: 'Rob Edwards', stadium: 'Kenilworth Road' },
+  'west brom': { manager: 'Tony Mowbray', stadium: 'The Hawthorns' },
+  'west bromwich albion': { manager: 'Tony Mowbray', stadium: 'The Hawthorns' },
+  'middlesbrough': { manager: 'Michael Carrick', stadium: 'Riverside Stadium' },
+  'norwich': { manager: 'Johannes Hoff Thorup', stadium: 'Carrow Road' },
+  'norwich city': { manager: 'Johannes Hoff Thorup', stadium: 'Carrow Road' },
+  'watford': { manager: 'Tom Cleverley', stadium: 'Vicarage Road' },
+  'blackburn': { manager: 'John Eustace', stadium: 'Ewood Park' },
+  'blackburn rovers': { manager: 'John Eustace', stadium: 'Ewood Park' },
+  'derby': { manager: 'Paul Warne', stadium: 'Pride Park Stadium' },
+  'derby county': { manager: 'Paul Warne', stadium: 'Pride Park Stadium' },
+  'stoke': { manager: 'Narcís Pèlach', stadium: 'bet365 Stadium' },
+  'stoke city': { manager: 'Narcís Pèlach', stadium: 'bet365 Stadium' },
+  'portsmouth': { manager: 'John Mousinho', stadium: 'Fratton Park' },
+  'qpr': { manager: 'Martí Cifuentes', stadium: 'Loftus Road' },
+  'queens park rangers': { manager: 'Martí Cifuentes', stadium: 'Loftus Road' },
+  'swansea': { manager: 'Luke Williams', stadium: 'Swansea.com Stadium' },
+  'swansea city': { manager: 'Luke Williams', stadium: 'Swansea.com Stadium' },
+  'bristol city': { manager: 'Liam Manning', stadium: 'Ashton Gate' },
 
   // La Liga
   'real madrid': { manager: 'Carlo Ancelotti', stadium: 'Santiago Bernabéu' },
   'barcelona': { manager: 'Hansi Flick', stadium: 'Spotify Camp Nou' },
+  'barca': { manager: 'Hansi Flick', stadium: 'Spotify Camp Nou' },
+  'fc barcelona': { manager: 'Hansi Flick', stadium: 'Spotify Camp Nou' },
   'atletico madrid': { manager: 'Diego Simeone', stadium: 'Riyadh Air Metropolitano' },
+  'atleti': { manager: 'Diego Simeone', stadium: 'Riyadh Air Metropolitano' },
   'athletic club': { manager: 'Ernesto Valverde', stadium: 'San Mamés' },
   'athletic bilbao': { manager: 'Ernesto Valverde', stadium: 'San Mamés' },
   'real sociedad': { manager: 'Imanol Alguacil', stadium: 'Reale Arena' },
   'real betis': { manager: 'Manuel Pellegrini', stadium: 'Benito Villamarín' },
+  'betis': { manager: 'Manuel Pellegrini', stadium: 'Benito Villamarín' },
   'villarreal': { manager: 'Marcelino García Toral', stadium: 'Estadio de la Cerámica' },
   'girona': { manager: 'Míchel', stadium: 'Montilivi' },
   'sevilla': { manager: 'García Pimienta', stadium: 'Ramón Sánchez-Pizjuán' },
-  'valencia': { manager: 'Rubén Baraja', stadium: 'Mestalla' },
+  'valencia': { manager: 'Carlos Corberán', stadium: 'Mestalla' },
   'celta vigo': { manager: 'Claudio Giráldez', stadium: 'Balaídos' },
+  'celta': { manager: 'Claudio Giráldez', stadium: 'Balaídos' },
   'mallorca': { manager: 'Jagoba Arrasate', stadium: 'Son Moix' },
+  'rcd mallorca': { manager: 'Jagoba Arrasate', stadium: 'Son Moix' },
   'osasuna': { manager: 'Vicente Moreno', stadium: 'El Sadar' },
-  'getafe': { manager: 'José Bordalás', stadium: 'Coliseum Alfonso Pérez' },
+  'getafe': { manager: 'José Bordalás', stadium: 'Coliseum' },
   'las palmas': { manager: 'Diego Martínez', stadium: 'Estadio Gran Canaria' },
   'rayo vallecano': { manager: 'Iñigo Pérez', stadium: 'Campo de Vallecas' },
+  'rayo': { manager: 'Iñigo Pérez', stadium: 'Campo de Vallecas' },
   'espanyol': { manager: 'Manolo González', stadium: 'Stage Front Stadium' },
+  'rcd espanyol': { manager: 'Manolo González', stadium: 'Stage Front Stadium' },
   'alaves': { manager: 'Eduardo Coudet', stadium: 'Mendizorrotza' },
+  'deportivo alaves': { manager: 'Eduardo Coudet', stadium: 'Mendizorrotza' },
   'leganes': { manager: 'Borja Jiménez', stadium: 'Estadio Municipal Butarque' },
-  'valladolid': { manager: 'Paulo Pezzolano', stadium: 'José Zorrilla' },
+  'valladolid': { manager: 'Diego Cocca', stadium: 'José Zorrilla' },
+  'real valladolid': { manager: 'Diego Cocca', stadium: 'José Zorrilla' },
+
+  // Spanish Segunda & Promoted
+  'deportivo': { manager: 'Óscar Gilsanz', stadium: 'Estadio Riazor' },
+  'deportivo la coruna': { manager: 'Óscar Gilsanz', stadium: 'Estadio Riazor' },
+  'rc deportivo': { manager: 'Óscar Gilsanz', stadium: 'Estadio Riazor' },
+  'elche': { manager: 'Eder Sarabia', stadium: 'Estadio Martínez Valero' },
+  'levante': { manager: 'Julián Calero', stadium: 'Estadi Ciutat de València' },
+  'malaga': { manager: 'Sergio Pellicer', stadium: 'La Rosaleda' },
+  'racing santander': { manager: 'José Alberto López', stadium: 'El Sardinero' },
+  'granada': { manager: 'Fran Escribá', stadium: 'Nuevo Los Cármenes' },
+  'almeria': { manager: 'Rubi', stadium: 'Power Horse Stadium' },
+  'cadiz': { manager: 'Paco López', stadium: 'Nuevo Mirandilla' },
+  'zaragoza': { manager: 'Víctor Fernández', stadium: 'La Romareda' },
+  'real zaragoza': { manager: 'Víctor Fernández', stadium: 'La Romareda' },
+  'sporting gijon': { manager: 'Rubén Albés', stadium: 'El Molinón' },
+  'eibar': { manager: 'Joseba Etxeberria', stadium: 'Ipurua' },
+  'real oviedo': { manager: 'Javi Calleja', stadium: 'Carlos Tartiere' },
 
   // Bundesliga
   'bayer leverkusen': { manager: 'Xabi Alonso', stadium: 'BayArena' },
+  'leverkusen': { manager: 'Xabi Alonso', stadium: 'BayArena' },
   'bayern munich': { manager: 'Vincent Kompany', stadium: 'Allianz Arena' },
-  'borussia dortmund': { manager: 'Nuri Şahin', stadium: 'Signal Iduna Park' },
+  'bayern': { manager: 'Vincent Kompany', stadium: 'Allianz Arena' },
+  'borussia dortmund': { manager: 'Niko Kovač', stadium: 'Signal Iduna Park' },
+  'dortmund': { manager: 'Niko Kovač', stadium: 'Signal Iduna Park' },
+  'bvb': { manager: 'Niko Kovač', stadium: 'Signal Iduna Park' },
   'rb leipzig': { manager: 'Marco Rose', stadium: 'Red Bull Arena' },
+  'leipzig': { manager: 'Marco Rose', stadium: 'Red Bull Arena' },
   'vfb stuttgart': { manager: 'Sebastian Hoeneß', stadium: 'MHPArena' },
+  'stuttgart': { manager: 'Sebastian Hoeneß', stadium: 'MHPArena' },
   'eintracht frankfurt': { manager: 'Dino Toppmöller', stadium: 'Deutsche Bank Park' },
+  'frankfurt': { manager: 'Dino Toppmöller', stadium: 'Deutsche Bank Park' },
   'sc freiburg': { manager: 'Julian Schuster', stadium: 'Europa-Park Stadion' },
+  'freiburg': { manager: 'Julian Schuster', stadium: 'Europa-Park Stadion' },
   'wolfsburg': { manager: 'Ralph Hasenhüttl', stadium: 'Volkswagen Arena' },
+  'vfl wolfsburg': { manager: 'Ralph Hasenhüttl', stadium: 'Volkswagen Arena' },
   'borussia monchengladbach': { manager: 'Gerardo Seoane', stadium: 'Borussia-Park' },
-  'union berlin': { manager: 'Bo Svensson', stadium: 'Stadion An der Alten Försterei' },
+  'monchengladbach': { manager: 'Gerardo Seoane', stadium: 'Borussia-Park' },
+  'mönchengladbach': { manager: 'Gerardo Seoane', stadium: 'Borussia-Park' },
+  'union berlin': { manager: 'Steffen Baumgart', stadium: 'Stadion An der Alten Försterei' },
+  '1 fc union berlin': { manager: 'Steffen Baumgart', stadium: 'Stadion An der Alten Försterei' },
   'werder bremen': { manager: 'Ole Werner', stadium: 'Weserstadion' },
+  'bremen': { manager: 'Ole Werner', stadium: 'Weserstadion' },
   'hoffenheim': { manager: 'Christian Ilzer', stadium: 'PreZero Arena' },
+  'tsg hoffenheim': { manager: 'Christian Ilzer', stadium: 'PreZero Arena' },
   'augsburg': { manager: 'Jess Thorup', stadium: 'WWK Arena' },
+  'fc augsburg': { manager: 'Jess Thorup', stadium: 'WWK Arena' },
   'mainz': { manager: 'Bo Henriksen', stadium: 'Mewa Arena' },
+  'mainz 05': { manager: 'Bo Henriksen', stadium: 'Mewa Arena' },
   'heidenheim': { manager: 'Frank Schmidt', stadium: 'Voith-Arena' },
+  '1 fc heidenheim': { manager: 'Frank Schmidt', stadium: 'Voith-Arena' },
   'st pauli': { manager: 'Alexander Blessin', stadium: 'Millerntor-Stadion' },
+  'fc st pauli': { manager: 'Alexander Blessin', stadium: 'Millerntor-Stadion' },
   'bochum': { manager: 'Dieter Hecking', stadium: 'Vonovia Ruhrstadion' },
+  'vfl bochum': { manager: 'Dieter Hecking', stadium: 'Vonovia Ruhrstadion' },
   'holstein kiel': { manager: 'Marcel Rapp', stadium: 'Holstein-Stadion' },
+  'kiel': { manager: 'Marcel Rapp', stadium: 'Holstein-Stadion' },
+
+  // German 2. Bundesliga & Notable
+  'fc cologne': { manager: 'Gerhard Struber', stadium: 'RheinEnergieStadion' },
+  'cologne': { manager: 'Gerhard Struber', stadium: 'RheinEnergieStadion' },
+  'koln': { manager: 'Gerhard Struber', stadium: 'RheinEnergieStadion' },
+  '1 fc koln': { manager: 'Gerhard Struber', stadium: 'RheinEnergieStadion' },
+  'hamburg sv': { manager: 'Merlin Polzin', stadium: 'Volksparkstadion' },
+  'hamburg': { manager: 'Merlin Polzin', stadium: 'Volksparkstadion' },
+  'hsv': { manager: 'Merlin Polzin', stadium: 'Volksparkstadion' },
+  'schalke 04': { manager: 'Kees van Wonderen', stadium: 'Veltins-Arena' },
+  'schalke': { manager: 'Kees van Wonderen', stadium: 'Veltins-Arena' },
+  'sc paderborn 07': { manager: 'Lukas Kwasniok', stadium: 'Home Deluxe Arena' },
+  'paderborn': { manager: 'Lukas Kwasniok', stadium: 'Home Deluxe Arena' },
+  'sv elversberg': { manager: 'Horst Steffen', stadium: 'Ursapharm-Arena an der Kaiserlinde' },
+  'elversberg': { manager: 'Horst Steffen', stadium: 'Ursapharm-Arena an der Kaiserlinde' },
+  'hertha bsc': { manager: 'Cristian Fiél', stadium: 'Olympiastadion' },
+  'hertha': { manager: 'Cristian Fiél', stadium: 'Olympiastadion' },
+  'hannover 96': { manager: 'Stefan Leitl', stadium: 'Heinz von Heiden Arena' },
+  'hannover': { manager: 'Stefan Leitl', stadium: 'Heinz von Heiden Arena' },
+  'fortuna dusseldorf': { manager: 'Daniel Thioune', stadium: 'Merkur Spiel-Arena' },
+  'dusseldorf': { manager: 'Daniel Thioune', stadium: 'Merkur Spiel-Arena' },
+  '1 fc nurnberg': { manager: 'Miroslav Klose', stadium: 'Max-Morlock-Stadion' },
+  'nurnberg': { manager: 'Miroslav Klose', stadium: 'Max-Morlock-Stadion' },
+  '1 fc kaiserslautern': { manager: 'Markus Anfang', stadium: 'Fritz-Walter-Stadion' },
+  'kaiserslautern': { manager: 'Markus Anfang', stadium: 'Fritz-Walter-Stadion' },
+  'karlsruher sc': { manager: 'Christian Eichner', stadium: 'BBBank Wildpark' },
+  'karlsruher': { manager: 'Christian Eichner', stadium: 'BBBank Wildpark' },
+  'darmstadt 98': { manager: 'Florian Kohfeldt', stadium: 'Merck-Stadion am Böllenfalltor' },
+  'darmstadt': { manager: 'Florian Kohfeldt', stadium: 'Merck-Stadion am Böllenfalltor' },
 
   // Serie A
   'inter': { manager: 'Simone Inzaghi', stadium: 'San Siro' },
   'inter milan': { manager: 'Simone Inzaghi', stadium: 'San Siro' },
-  'ac milan': { manager: 'Paulo Fonseca', stadium: 'San Siro' },
-  'milan': { manager: 'Paulo Fonseca', stadium: 'San Siro' },
+  'internazionale': { manager: 'Simone Inzaghi', stadium: 'San Siro' },
+  'ac milan': { manager: 'Sérgio Conceição', stadium: 'San Siro' },
+  'milan': { manager: 'Sérgio Conceição', stadium: 'San Siro' },
   'juventus': { manager: 'Thiago Motta', stadium: 'Allianz Stadium' },
+  'juve': { manager: 'Thiago Motta', stadium: 'Allianz Stadium' },
   'napoli': { manager: 'Antonio Conte', stadium: 'Stadio Diego Armando Maradona' },
   'atalanta': { manager: 'Gian Piero Gasperini', stadium: 'Gewiss Stadium' },
   'roma': { manager: 'Claudio Ranieri', stadium: 'Stadio Olimpico' },
   'as roma': { manager: 'Claudio Ranieri', stadium: 'Stadio Olimpico' },
   'lazio': { manager: 'Marco Baroni', stadium: 'Stadio Olimpico' },
   'fiorentina': { manager: 'Raffaele Palladino', stadium: 'Stadio Artemio Franchi' },
-  'bologna': { manager: 'Vincenzo Italiano', stadium: 'Renato Dall\'Ara' },
+  'bologna': { manager: 'Vincenzo Italiano', stadium: "Renato Dall'Ara" },
   'torino': { manager: 'Paolo Vanoli', stadium: 'Stadio Olimpico Grande Torino' },
   'udinese': { manager: 'Kosta Runjaić', stadium: 'Bluenergy Stadium' },
   'genoa': { manager: 'Patrick Vieira', stadium: 'Luigi Ferraris' },
@@ -152,55 +276,200 @@ export const CLUB_MANAGERS: Record<string, { manager: string; stadium: string }>
   'cagliari': { manager: 'Davide Nicola', stadium: 'Unipol Domus' },
   'empoli': { manager: 'Roberto D\'Aversa', stadium: 'Carlo Castellani' },
   'verona': { manager: 'Paolo Zanetti', stadium: 'Marcantonio Bentegodi' },
-  'monza': { manager: 'Salvatore Bocchetti', stadium: 'U-Power Stadium' },
+  'hellas verona': { manager: 'Paolo Zanetti', stadium: 'Marcantonio Bentegodi' },
+  'monza': { manager: 'Alessandro Nesta', stadium: 'U-Power Stadium' },
   'lecce': { manager: 'Marco Giampaolo', stadium: 'Stadio Via del mare' },
   'venezia': { manager: 'Eusebio Di Francesco', stadium: 'Stadio Pier Luigi Penzo' },
+
+  // Italian Serie B & Notable
+  'sassuolo': { manager: 'Fabio Grosso', stadium: 'Mapei Stadium' },
+  'frosinone': { manager: 'Leandro Greco', stadium: 'Stadio Benito Stirpe' },
+  'salernitana': { manager: 'Stefano Colantuono', stadium: 'Stadio Arechi' },
+  'sampdoria': { manager: 'Andrea Sottil', stadium: 'Luigi Ferraris' },
+  'palermo': { manager: 'Alessio Dionisi', stadium: 'Renzo Barbera' },
+  'cremonese': { manager: 'Giovanni Stroppa', stadium: 'Giovanni Zini' },
+  'spezia': { manager: 'Luca D\'Angelo', stadium: 'Alberto Picco' },
+  'pisa': { manager: 'Filippo Inzaghi', stadium: 'Arena Garibaldi' },
+  'brescia': { manager: 'Rolando Maran', stadium: 'Mario Rigamonti' },
+  'bari': { manager: 'Moreno Longo', stadium: 'San Nicola' },
+  'cesena': { manager: 'Michele Mignani', stadium: 'Dino Manuzzi' },
+  'catanzaro': { manager: 'Fabio Caserta', stadium: 'Nicola Ceravolo' },
 
   // Ligue 1
   'paris saint-germain': { manager: 'Luis Enrique', stadium: 'Parc des Princes' },
   'psg': { manager: 'Luis Enrique', stadium: 'Parc des Princes' },
   'monaco': { manager: 'Adi Hütter', stadium: 'Stade Louis II' },
+  'as monaco': { manager: 'Adi Hütter', stadium: 'Stade Louis II' },
   'marseille': { manager: 'Roberto De Zerbi', stadium: 'Orange Vélodrome' },
+  'olympiquedemarseille': { manager: 'Roberto De Zerbi', stadium: 'Orange Vélodrome' },
+  'olympique de marseille': { manager: 'Roberto De Zerbi', stadium: 'Orange Vélodrome' },
   'lille': { manager: 'Bruno Génésio', stadium: 'Decathlon Arena' },
-  'lyon': { manager: 'Pierre Sage', stadium: 'Groupama Stadium' },
+  'lille osc': { manager: 'Bruno Génésio', stadium: 'Decathlon Arena' },
+  'lyon': { manager: 'Paulo Fonseca', stadium: 'Groupama Stadium' },
+  'olympiquelyonnais': { manager: 'Paulo Fonseca', stadium: 'Groupama Stadium' },
+  'olympique lyonnais': { manager: 'Paulo Fonseca', stadium: 'Groupama Stadium' },
   'nice': { manager: 'Franck Haise', stadium: 'Allianz Riviera' },
+  'ogc nice': { manager: 'Franck Haise', stadium: 'Allianz Riviera' },
   'lens': { manager: 'Will Still', stadium: 'Stade Bollaert-Delelis' },
-  'rennes': { manager: 'Jorge Sampaoli', stadium: 'Roazhon Park' },
+  'rc lens': { manager: 'Will Still', stadium: 'Stade Bollaert-Delelis' },
+  'rennes': { manager: 'Habib Beye', stadium: 'Roazhon Park' },
+  'stade rennais': { manager: 'Habib Beye', stadium: 'Roazhon Park' },
+  'stade rennais fc': { manager: 'Habib Beye', stadium: 'Roazhon Park' },
+  'rennais': { manager: 'Habib Beye', stadium: 'Roazhon Park' },
   'strasbourg': { manager: 'Liam Rosenior', stadium: 'Stade de la Meinau' },
+  'rc strasbourg': { manager: 'Liam Rosenior', stadium: 'Stade de la Meinau' },
   'brest': { manager: 'Éric Roy', stadium: 'Stade Francis-Le Blé' },
-  'reims': { manager: 'Luka Elsner', stadium: 'Stade Auguste-Delaune' },
-  'auxerre': { manager: 'Christophe Pélissier', stadium: 'Stade de l\'Abbé-Deschamps' },
+  'stade brestois': { manager: 'Éric Roy', stadium: 'Stade Francis-Le Blé' },
+  'reims': { manager: 'Samba Diawara', stadium: 'Stade Auguste-Delaune' },
+  'stade de reims': { manager: 'Samba Diawara', stadium: 'Stade Auguste-Delaune' },
+  'auxerre': { manager: 'Christophe Pélissier', stadium: "Stade de l'Abbé-Deschamps" },
+  'aj auxerre': { manager: 'Christophe Pélissier', stadium: "Stade de l'Abbé-Deschamps" },
   'toulouse': { manager: 'Carles Martínez Novell', stadium: 'Stadium de Toulouse' },
+  'toulouse fc': { manager: 'Carles Martínez Novell', stadium: 'Stadium de Toulouse' },
   'montpellier': { manager: 'Jean-Louis Gasset', stadium: 'Stade de la Mosson' },
+  'montpellier hsc': { manager: 'Jean-Louis Gasset', stadium: 'Stade de la Mosson' },
   'nantes': { manager: 'Antoine Kombouaré', stadium: 'Stade de la Beaujoire' },
+  'fc nantes': { manager: 'Antoine Kombouaré', stadium: 'Stade de la Beaujoire' },
   'angers': { manager: 'Alexandre Dujeux', stadium: 'Stade Raymond Kopa' },
-  'saint-etienne': { manager: 'Olivier Dall\'Oglio', stadium: 'Stade Geoffroy-Guichard' },
+  'angers sco': { manager: 'Alexandre Dujeux', stadium: 'Stade Raymond Kopa' },
+  'saint-etienne': { manager: 'Eirik Horneland', stadium: 'Stade Geoffroy-Guichard' },
+  'as saint-etienne': { manager: 'Eirik Horneland', stadium: 'Stade Geoffroy-Guichard' },
   'le havre': { manager: 'Didier Digard', stadium: 'Stade Océane' },
+  'le havre ac': { manager: 'Didier Digard', stadium: 'Stade Océane' },
 
-  // European Giants
+  // French Ligue 2 & Promoted
+  'paris fc': { manager: 'Stéphane Gilli', stadium: 'Stade Sébastien Charléty' },
+  'lorient': { manager: 'Olivier Pantaloni', stadium: 'Stade du Moustoir' },
+  'fc lorient': { manager: 'Olivier Pantaloni', stadium: 'Stade du Moustoir' },
+  'troyes': { manager: 'Stéphane Dumont', stadium: "Stade de l'Aube" },
+  'estac troyes': { manager: 'Stéphane Dumont', stadium: "Stade de l'Aube" },
+  'le mans': { manager: 'Patrick Videira', stadium: 'Stade Marie-Marvingt' },
+  'le mans fc': { manager: 'Patrick Videira', stadium: 'Stade Marie-Marvingt' },
+  'metz': { manager: 'Stéphane Le Mignan', stadium: 'Stade Saint-Symphorien' },
+  'fc metz': { manager: 'Stéphane Le Mignan', stadium: 'Stade Saint-Symphorien' },
+  'clermont': { manager: 'Sébastien Bichard', stadium: 'Stade Gabriel-Montpied' },
+  'clermont foot': { manager: 'Sébastien Bichard', stadium: 'Stade Gabriel-Montpied' },
+  'guingamp': { manager: 'Sylvain Ripoll', stadium: 'Stade de Roudourou' },
+  'ea guingamp': { manager: 'Sylvain Ripoll', stadium: 'Stade de Roudourou' },
+  'caen': { manager: 'Nicolas Seube', stadium: "Stade Michel d'Ornano" },
+  'sm caen': { manager: 'Nicolas Seube', stadium: "Stade Michel d'Ornano" },
+  'ajaccio': { manager: 'Mathieu Chabert', stadium: 'Stade François Coty' },
+  'ac ajaccio': { manager: 'Mathieu Chabert', stadium: 'Stade François Coty' },
+  'bastia': { manager: 'Benoît Tavenot', stadium: 'Stade Armand-Cesari' },
+  'sc bastia': { manager: 'Benoît Tavenot', stadium: 'Stade Armand-Cesari' },
+  'red star': { manager: 'Grégory Poirier', stadium: 'Stade Bauer' },
+  'amiens': { manager: 'Omar Daf', stadium: 'Stade de la Licorne' },
+  'amiens sc': { manager: 'Omar Daf', stadium: 'Stade de la Licorne' },
+
+  // European Giants & UEFA Competitions
   'sporting cp': { manager: 'João Pereira', stadium: 'Estádio José Alvalade' },
+  'sporting': { manager: 'João Pereira', stadium: 'Estádio José Alvalade' },
+  'sporting lisbon': { manager: 'João Pereira', stadium: 'Estádio José Alvalade' },
   'benfica': { manager: 'Bruno Lage', stadium: 'Estádio da Luz' },
-  'porto': { manager: 'Vítor Bruno', stadium: 'Estádio do Dragão' },
+  'sl benfica': { manager: 'Bruno Lage', stadium: 'Estádio da Luz' },
+  'porto': { manager: 'Martín Anselmi', stadium: 'Estádio do Dragão' },
+  'fc porto': { manager: 'Martín Anselmi', stadium: 'Estádio do Dragão' },
   'ajax': { manager: 'Francesco Farioli', stadium: 'Johan Cruyff Arena' },
+  'afc ajax': { manager: 'Francesco Farioli', stadium: 'Johan Cruyff Arena' },
   'feyenoord': { manager: 'Brian Priske', stadium: 'De Kuip' },
+  'feyenoord rotterdam': { manager: 'Brian Priske', stadium: 'De Kuip' },
   'psv': { manager: 'Peter Bosz', stadium: 'Philips Stadion' },
+  'psv eindhoven': { manager: 'Peter Bosz', stadium: 'Philips Stadion' },
   'celtic': { manager: 'Brendan Rodgers', stadium: 'Celtic Park' },
-  'rangers': { manager: 'Philippe Clement', stadium: 'Ibrox Stadium' },
+  'celtic fc': { manager: 'Brendan Rodgers', stadium: 'Celtic Park' },
+  'rangers': { manager: 'Barry Ferguson', stadium: 'Ibrox Stadium' },
+  'rangers fc': { manager: 'Barry Ferguson', stadium: 'Ibrox Stadium' },
   'galatasaray': { manager: 'Okan Buruk', stadium: 'RAMS Park' },
+  'galatasaray sk': { manager: 'Okan Buruk', stadium: 'RAMS Park' },
   'fenerbahce': { manager: 'José Mourinho', stadium: 'Şükrü Saracoğlu Stadium' },
-  'besiktas': { manager: 'Serdar Topraktepe', stadium: 'Tüpraş Stadium' },
+  'fenerbahce sk': { manager: 'José Mourinho', stadium: 'Şükrü Saracoğlu Stadium' },
+  'besiktas': { manager: 'Ole Gunnar Solskjær', stadium: 'Tüpraş Stadium' },
+  'besiktas jk': { manager: 'Ole Gunnar Solskjær', stadium: 'Tüpraş Stadium' },
   'club brugge': { manager: 'Nicky Hayen', stadium: 'Jan Breydel Stadium' },
-  'shakhtar donetsk': { manager: 'Marino Pušić', stadium: 'Donbass Arena' }
+  'shakhtar donetsk': { manager: 'Marino Pušić', stadium: 'Donbass Arena' },
+  'shakhtar': { manager: 'Marino Pušić', stadium: 'Donbass Arena' },
+  'slavia prague': { manager: 'Jindřich Trpišovský', stadium: 'Fortuna Arena' },
+  'sparta prague': { manager: 'Lars Friis', stadium: 'epet ARENA' },
+  'dinamo zagreb': { manager: 'Fabio Cannavaro', stadium: 'Stadion Maksimir' },
+  'red star belgrade': { manager: 'Vladan Milojević', stadium: 'Rajko Mitić Stadium' },
+  'crvena zvezda': { manager: 'Vladan Milojević', stadium: 'Rajko Mitić Stadium' },
+  'young boys': { manager: 'Giorgio Contini', stadium: 'Stadion Wankdorf' },
+  'bsc young boys': { manager: 'Giorgio Contini', stadium: 'Stadion Wankdorf' },
+  'sturm graz': { manager: 'Fabio Ingolitsch', stadium: 'Merkur Arena' },
+  'sk sturm graz': { manager: 'Fabio Ingolitsch', stadium: 'Merkur Arena' },
+  'salzburg': { manager: 'Thomas Letsch', stadium: 'Red Bull Arena' },
+  'red bull salzburg': { manager: 'Thomas Letsch', stadium: 'Red Bull Arena' },
+  'slovan bratislava': { manager: 'Vladimír Weiss', stadium: 'Tehelné pole' },
+  'bodo/glimt': { manager: 'Kjetil Knutsen', stadium: 'Aspmyra Stadion' },
+  'bodoglimt': { manager: 'Kjetil Knutsen', stadium: 'Aspmyra Stadion' },
+  'anderlecht': { manager: 'David Hubert', stadium: 'Lotto Park' },
+  'rsc anderlecht': { manager: 'David Hubert', stadium: 'Lotto Park' },
+  'panathinaikos': { manager: 'Rui Vitória', stadium: 'Olympic Stadium Athens' },
+  'olympiacos': { manager: 'José Luis Mendilibar', stadium: 'Karaiskakis Stadium' },
+  'paok': { manager: 'Răzvan Lucescu', stadium: 'Toumba Stadium' },
+  'maccabi tel aviv': { manager: 'Žarko Lazetić', stadium: 'Bloomfield Stadium' },
+  'ferencvaros': { manager: 'Pascal Jansen', stadium: 'Groupama Arena' },
+  'qarabag': { manager: 'Gurban Gurbanov', stadium: 'Tofiq Bahramov Stadium' },
+  'malmo': { manager: 'Henrik Rydström', stadium: 'Eleda Stadion' },
+  'malmo ff': { manager: 'Henrik Rydström', stadium: 'Eleda Stadion' },
+  'twente': { manager: 'Joseph Oosting', stadium: 'De Grolsch Veste' },
+  'fc twente': { manager: 'Joseph Oosting', stadium: 'De Grolsch Veste' },
+  'az alkmaar': { manager: 'Maarten Martens', stadium: 'AFAS Stadion' },
+  'az': { manager: 'Maarten Martens', stadium: 'AFAS Stadion' },
+  'braga': { manager: 'Carlos Carvalhal', stadium: 'Estádio Municipal de Braga' },
+  'sc braga': { manager: 'Carlos Carvalhal', stadium: 'Estádio Municipal de Braga' }
 };
 
 export function getClubInfo(teamName: string): { manager: string; stadium: string } {
-  const norm = teamName.toLowerCase().trim().replace(/^fc\s+/, '').replace(/\s+fc$/, '').replace(/[\.\-\s]/g, '');
+  const clean = (s: string) =>
+    (s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '');
+
+  const target = clean(teamName);
+  if (!target) return { manager: 'First Team Head Coach', stadium: 'Home Stadium' };
+
+  // 1. Direct exact key match
   for (const [key, info] of Object.entries(CLUB_MANAGERS)) {
-    const keyNorm = key.toLowerCase().replace(/^fc\s+/, '').replace(/\s+fc$/, '').replace(/[\.\-\s]/g, '');
-    if (norm.includes(keyNorm) || keyNorm.includes(norm)) {
+    if (target === clean(key)) return info;
+  }
+
+  // 2. Exact match with stripped common club affixes (fc, cf, sc, as, ac, rc, sv, vfb, vfl, etc.)
+  const stripAffixes = (str: string) =>
+    str
+      .replace(/^(fc|cf|sc|as|ac|rc|sv|vfb|vfl|afc|ogc|rb|tsg|bsc|sk|sl|aj|estac|sm)/, '')
+      .replace(/(fc|cf|sc|as|ac|rc|sv|vfb|vfl|afc|ogc|rb|tsg|bsc|sk|sl|aj|estac|sm)$/, '')
+      .replace(/(united|city|town|hotspur|wanderers|rovers|albion|athletic)$/, '');
+
+  const strippedTarget = stripAffixes(target);
+  if (strippedTarget.length >= 3) {
+    for (const [key, info] of Object.entries(CLUB_MANAGERS)) {
+      if (strippedTarget === stripAffixes(clean(key))) return info;
+    }
+  }
+
+  // 3. Prefix / Contains match ordered by key length DESCENDING (prevents short words hijacking longer names)
+  const sortedEntries = Object.entries(CLUB_MANAGERS).sort((a, b) => clean(b[0]).length - clean(a[0]).length);
+  for (const [key, info] of sortedEntries) {
+    const k = clean(key);
+    // target contains the full key (e.g. "Paris Saint-Germain FC" contains "paris saint-germain")
+    if (target.includes(k)) {
       return info;
     }
   }
+
+  // 4. Stripped target contains stripped key (e.g. "staderennaisfc" stripped contains "rennais")
+  if (strippedTarget.length >= 4) {
+    for (const [key, info] of sortedEntries) {
+      const strippedKey = stripAffixes(clean(key));
+      if (strippedKey.length >= 4 && strippedTarget.includes(strippedKey)) {
+        return info;
+      }
+    }
+  }
+
   return { manager: 'First Team Head Coach', stadium: 'Home Stadium' };
 }
 
@@ -297,8 +566,8 @@ class FootballApiService {
     await this.indexAllTeams();
 
     let clean = query.toLowerCase().trim();
-    // Strip query noise words
-    const stripped = clean.replace(/\b(schedule|fixtures|matches|match|vs|game|squad|roster|players|when|is|playing|next|who|the|now|live|scores?)\b/g, '').trim();
+    // Strip query noise words (including manager / coach / stadium intent words)
+    const stripped = clean.replace(/\b(schedule|fixtures|matches|match|vs|game|squad|roster|players|player|manager|coach|head|boss|gaffer|trainer|stadium|ground|arena|when|is|playing|next|who|the|now|live|scores?|of|for|about)\b/g, '').trim();
 
     // If query was just a generic status word without a team name, return null
     if (['', 'live', 'today', 'now', 'match', 'game', 'score', 'scores', 'table', 'standings'].includes(stripped)) {
@@ -924,12 +1193,14 @@ class FootballApiService {
           home: {
             team: fixture.homeTeam,
             formation: homeRosterRaw?.formation || '4-3-3',
+            coach: getClubInfo(fixture.homeTeam.name).manager,
             starters: homeLineupMapped.starters,
             substitutes: homeLineupMapped.substitutes
           },
           away: {
             team: fixture.awayTeam,
             formation: awayRosterRaw?.formation || '4-3-3',
+            coach: getClubInfo(fixture.awayTeam.name).manager,
             starters: awayLineupMapped.starters,
             substitutes: awayLineupMapped.substitutes
           }

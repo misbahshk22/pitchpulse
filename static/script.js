@@ -1144,7 +1144,10 @@ function renderMatchCenterTabBody() {
 
       return `
         <div style="margin: 6px 0;">
-          <div class="pitch-team-title">${lineup.team?.name} <span style="font-size:0.78rem; opacity:0.85; font-weight:600;">(${formationStr})</span></div>
+          <div class="pitch-team-title">
+            ${lineup.team?.name} <span style="font-size:0.78rem; opacity:0.85; font-weight:600;">(${formationStr})</span>
+            ${lineup.coach && lineup.coach !== 'First Team Head Coach' ? `<span style="display:inline-block; margin-left:8px; font-size:0.75rem; font-weight:600; color:var(--pitch-green); background:rgba(0,255,135,0.1); padding:2px 8px; border-radius:4px; border:1px solid rgba(0,255,135,0.25);">👔 ${lineup.coach}</span>` : ''}
+          </div>
           <div style="display:flex; flex-direction:column; gap:14px; margin: 8px 0;">
             ${displayRows.map(row => `
               <div class="pitch-tactical-row">

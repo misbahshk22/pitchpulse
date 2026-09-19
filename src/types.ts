@@ -132,6 +132,7 @@ export interface LineupPlayer {
 export interface TeamLineup {
   team: Team;
   formation?: string;
+  coach?: string;
   starters: LineupPlayer[];
   substitutes: LineupPlayer[];
 }

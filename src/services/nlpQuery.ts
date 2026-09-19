@@ -10,6 +10,7 @@ export async function handleNaturalLanguageQuery(userQuery: string): Promise<Que
   const teamMatch = await footballApi.findTeam(clean);
 
   if (teamMatch) {
+    const isManagerQuery = clean.includes('manager') || clean.includes('coach') || clean.includes('boss') || clean.includes('gaffer');
     const isSquadQuery = clean.includes('squad') || clean.includes('player') || clean.includes('roster') || clean.includes('lineup');
 
     // Fetch squad & schedule in parallel from real ESPN feed + DB
@@ -17,6 +18,16 @@ export async function handleNaturalLanguageQuery(userQuery: string): Promise<Que
       footballApi.getTeamSquad(teamMatch.name),
       footballApi.getTeamSchedule(teamMatch.name)
     ]);
+
+    if (isManagerQuery && squad) {
+      return {
+        query: userQuery,
+        intent: 'team_info',
+        message: `👔 **${squad.manager}** is the Head Coach / Manager of **${teamMatch.name}** (stadium: ${squad.stadium || 'Home Stadium'}).`,
+        squad,
+        matches: schedule.slice(0, 3)
+      };
+    }
 
     if (isSquadQuery && squad) {
       return {
