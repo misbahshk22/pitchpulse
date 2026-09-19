@@ -2152,6 +2152,28 @@ body {
   animation: pulseGlow 1.5s infinite;
 }
 
+.mc-share-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mc-share-pill:hover {
+  background: rgba(0, 255, 135, 0.15);
+  border-color: var(--pitch-green);
+  color: var(--pitch-green);
+  transform: translateY(-1px);
+}
+
 /* Stat Duel Bars */
 .stat-bar-row {
   margin-bottom: 16px;

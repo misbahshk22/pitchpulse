@@ -1061,6 +1061,19 @@ function renderMatchCenterTabBody() {
         <span class="mc-team-name">${f.awayTeam.name}</span>
       </div>
     </div>
+
+    <!-- Match Social Share Bar -->
+    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin: 10px 0 16px; flex-wrap:wrap;">
+      <button class="mc-share-pill" onclick="shareMatchToWhatsApp('${f.homeTeam.name}', '${f.awayTeam.name}', '${homeScore}', '${awayScore}', '${f.statusText || f.status}', '${f.leagueName}')" title="Share match on WhatsApp">
+        💬 WhatsApp
+      </button>
+      <button class="mc-share-pill" onclick="shareMatchToX('${f.homeTeam.name}', '${f.awayTeam.name}', '${homeScore}', '${awayScore}', '${f.statusText || f.status}', '${f.leagueName}')" title="Share match on X / Twitter">
+        𝕏 Share
+      </button>
+      <button class="mc-share-pill" onclick="copyMatchSummary('${f.homeTeam.name}', '${f.awayTeam.name}', '${homeScore}', '${awayScore}', '${f.statusText || f.status}', '${f.leagueName}')" title="Copy match summary & link">
+        📋 Copy Link
+      </button>
+    </div>
   `;
 
   let tabContentHtml = '';
@@ -2125,8 +2138,29 @@ async function verifyCallMeBot() {
 }
 
 function shareMatchToWhatsApp(home, away, homeScore, awayScore, status, league) {
-  const text = `⚽ *${home} vs ${away}*\n🏆 ${league}\n📊 Score: ${homeScore} - ${awayScore}\n⏱️ Status: ${status}\n\nTrack European Football live on GoalHub: https://goalhub-six.vercel.app`;
+  const siteUrl = window.location.origin || 'https://goalhub22.netlify.app';
+  const text = `⚽ *${home} vs ${away}*\n🏆 ${league}\n📊 Score: ${homeScore} - ${awayScore}\n⏱️ Status: ${status}\n\nTrack European Football live on GoalHub: ${siteUrl}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+}
+
+function shareMatchToX(home, away, homeScore, awayScore, status, league) {
+  const siteUrl = window.location.origin || 'https://goalhub22.netlify.app';
+  const text = `⚽ ${home} vs ${away} | ${league}\nScore: ${homeScore} - ${awayScore} (${status})\nLive on GoalHub: ${siteUrl}`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+}
+
+function copyMatchSummary(home, away, homeScore, awayScore, status, league) {
+  const siteUrl = window.location.origin || 'https://goalhub22.netlify.app';
+  const text = `⚽ ${home} vs ${away} | ${league} (${status})\nScore: ${homeScore} - ${awayScore}\n${siteUrl}`;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('📋 Match summary copied to clipboard!');
+    }).catch(() => {
+      prompt('Copy match summary:', text);
+    });
+  } else {
+    prompt('Copy match summary:', text);
+  }
 }
 
 // ===================================================
