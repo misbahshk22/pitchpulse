@@ -1,10 +1,14 @@
-﻿// GoalHub Service Worker - Offline & Fast Shell Cache
-const CACHE_NAME = 'goalhub-v1';
+// GoalHub Service Worker - Offline & Fast Shell Cache
+const CACHE_NAME = 'goalhub-v2';
 const SHELL_ASSETS = [
   '/',
   '/index.html',
   '/static/style.css',
   '/static/script.js',
+  '/static/icon-192.png',
+  '/static/icon-512.png',
+  '/static/logo.png',
+  '/favicon.png',
   '/manifest.json'
 ];
 
