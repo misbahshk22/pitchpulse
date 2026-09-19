@@ -102,3 +102,120 @@ export interface QueryResult {
   standings?: StandingTeam[];
   squad?: TeamSquad;
 }
+
+// ==========================================
+// Phase 1: Core Additions Types
+// ==========================================
+
+export interface MatchStatComparison {
+  name: string;
+  label: string;
+  homeValue: number | string;
+  awayValue: number | string;
+  homePct: number;
+  awayPct: number;
+}
+
+export interface LineupPlayer {
+  id: string;
+  name: string;
+  jersey: string;
+  position: string;
+  starter: boolean;
+  captain?: boolean;
+}
+
+export interface TeamLineup {
+  team: Team;
+  formation?: string;
+  starters: LineupPlayer[];
+  substitutes: LineupPlayer[];
+}
+
+export interface MatchDetails {
+  fixture: Fixture;
+  stats: MatchStatComparison[];
+  lineups: {
+    home: TeamLineup;
+    away: TeamLineup;
+  };
+  timeline: MatchEvent[];
+  commentary?: string[];
+  lastFiveGames?: {
+    home: Fixture[];
+    away: Fixture[];
+  };
+}
+
+export interface H2HMeeting {
+  id: number;
+  date: string;
+  competition: string;
+  homeTeam: Team;
+  awayTeam: Team;
+  score: FixtureScore;
+  winnerId: number | null; // null = draw
+}
+
+export interface H2HSummary {
+  team1: Team;
+  team2: Team;
+  totalMatches: number;
+  team1Wins: number;
+  draws: number;
+  team2Wins: number;
+  team1Goals: number;
+  team2Goals: number;
+  recentMeetings: H2HMeeting[];
+}
+
+export interface LeagueLeaderPlayer {
+  rank: number;
+  id: string;
+  name: string;
+  shortName?: string;
+  jersey?: string;
+  team: Team;
+  appearances: number;
+  value: number;
+  displayValue: string;
+}
+
+export interface LeagueLeaders {
+  leagueId: number;
+  leagueName: string;
+  topScorers: LeagueLeaderPlayer[];
+  topAssists: LeagueLeaderPlayer[];
+}
+
+export interface PlayerProfile {
+  id: string;
+  name: string;
+  fullName?: string;
+  jersey?: string;
+  photo: string;
+  position: string;
+  team: Team;
+  age?: number;
+  birthDate?: string;
+  height?: string;
+  weight?: string;
+  nationality?: string;
+  flag?: string;
+  stats: {
+    season: string;
+    appearances: number;
+    goals: number;
+    assists: number;
+    yellowCards?: number;
+    redCards?: number;
+  };
+}
+
+export interface GlobalSearchResult {
+  query: string;
+  teams: Team[];
+  players: (SquadPlayer & { teamName: string; teamLogo: string; teamId: number })[];
+  fixtures: Fixture[];
+}
+

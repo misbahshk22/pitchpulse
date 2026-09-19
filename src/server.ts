@@ -170,6 +170,81 @@ app.post('/api/query', async (req, res) => {
   }
 });
 
+// 6b. Match Center Details (Lineups, Formations, Dual-team stats, Timeline)
+app.get('/api/matches/:id/details', async (req, res) => {
+  try {
+    const matchId = parseInt(req.params.id, 10);
+    const leagueCode = req.query.leagueCode as string | undefined;
+    const details = await footballApi.getMatchDetails(matchId, leagueCode);
+    if (!details) {
+      return res.status(404).json({ status: 'error', message: 'Match details not found' });
+    }
+    res.json({ status: 'success', details });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Failed to fetch match details' });
+  }
+});
+
+// 6c. Head-to-Head (H2H) record between two teams (W/D/L + last 5-10 meetings)
+app.get('/api/h2h', async (req, res) => {
+  try {
+    const team1 = (req.query.team1 as string) || '';
+    const team2 = (req.query.team2 as string) || '';
+    if (!team1 || !team2) {
+      return res.status(400).json({ status: 'error', message: 'Both team1 and team2 parameters are required' });
+    }
+    const h2h = await footballApi.getHeadToHead(team1, team2);
+    if (!h2h) {
+      return res.status(404).json({ status: 'error', message: `H2H not found for ${team1} vs ${team2}` });
+    }
+    res.json({ status: 'success', h2h });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Failed to fetch H2H data' });
+  }
+});
+
+// 6d. League Leaders (Top Scorers & Assists per league)
+app.get('/api/leagues/:id/leaders', async (req, res) => {
+  try {
+    const leagueId = parseInt(req.params.id, 10);
+    const leaders = await footballApi.getLeagueLeaders(leagueId);
+    if (!leaders) {
+      return res.status(404).json({ status: 'error', message: 'Leaders not found for league' });
+    }
+    res.json({ status: 'success', leaders });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Failed to fetch league leaders' });
+  }
+});
+
+// 6e. Player Profile (Photo, bio, stats)
+app.get('/api/players/:id', async (req, res) => {
+  try {
+    const playerId = req.params.id;
+    const profile = await footballApi.getPlayerProfile(playerId);
+    if (!profile) {
+      return res.status(404).json({ status: 'error', message: 'Player profile not found' });
+    }
+    res.json({ status: 'success', profile });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Failed to fetch player profile' });
+  }
+});
+
+// 6f. Omnichannel Global Search (Clubs, Players, Fixtures)
+app.get('/api/search', async (req, res) => {
+  try {
+    const query = (req.query.q as string) || '';
+    if (!query) {
+      return res.json({ status: 'success', query: '', teams: [], players: [], fixtures: [] });
+    }
+    const results = await footballApi.globalSearch(query);
+    res.json({ status: 'success', ...results });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Search failed' });
+  }
+});
+
 // 7. Subscribe to notifications
 app.post('/api/notifications/subscribe', (req, res) => {
   try {

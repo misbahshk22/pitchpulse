@@ -1,15 +1,21 @@
-// Matchday Multi-Section Client
+// GoalHub Multi-Section Client
 
 let currentMatchLeagueId = null; // null = All
 let currentStandingsLeagueId = 39; // default Premier League
 let currentSquadLeagueId = 39;
+let currentLeadersLeagueId = 39;
+let currentLeaderCategory = 'scorers'; // 'scorers' | 'assists'
 let activeView = 'dashboard';
 let allTrackedLeagues = [];
+let activeMatchDetails = null;
+let currentActiveMatchCenterTab = 'stats';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  initTheme();
   await loadLeagues();
   await initDashboard();
   initEventSource();
+  initGlobalSearch();
   initAskForm();
   initNotifications();
 });
@@ -31,7 +37,8 @@ function navigateTo(viewName) {
     live: 'viewLive',
     matches: 'viewMatches',
     squads: 'viewSquads',
-    standings: 'viewStandings'
+    standings: 'viewStandings',
+    leaders: 'viewLeaders'
   };
 
   document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
@@ -43,6 +50,7 @@ function navigateTo(viewName) {
   else if (viewName === 'matches') loadMatchesSection();
   else if (viewName === 'squads') loadSquadsSection();
   else if (viewName === 'standings') loadStandingsSection();
+  else if (viewName === 'leaders') loadLeadersSection();
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -449,7 +457,7 @@ function initStandingsLeagueTabs() {
   if (!container || container.children.length > 0) return;
 
   container.innerHTML = '';
-  const majorLeagues = allTrackedLeagues.filter(l => [39, 140, 135, 78, 61].includes(l.id));
+  const majorLeagues = allTrackedLeagues;
 
   for (const league of majorLeagues) {
     const btn = document.createElement('button');
@@ -804,126 +812,225 @@ function initAskForm() {
 }
 
 // ===================================================
-// 10. Head-to-Head & Match Details Modal
+// 10. Match Center & Head-to-Head (H2H) System
 // ===================================================
+function updateMatchCenterTabButtons() {
+  document.querySelectorAll('.mc-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-mctab') === currentActiveMatchCenterTab);
+  });
+}
+
+function switchMatchCenterTab(tabName) {
+  currentActiveMatchCenterTab = tabName;
+  updateMatchCenterTabButtons();
+  renderMatchCenterTabBody();
+}
+
 async function openMatchModal(f) {
   const modal = document.getElementById('matchDetailsModal');
   const body = document.getElementById('matchModalBody');
   if (!modal || !body) return;
 
   modal.classList.add('open');
+  currentActiveMatchCenterTab = 'stats';
+  updateMatchCenterTabButtons();
+
   body.innerHTML = `
     <div style="text-align:center; padding: 40px 0;">
-      <p style="color:var(--sideline)">Loading Head-to-Head insights & table context...</p>
+      <p style="color:var(--sideline)">Loading Match Center, lineups & live statistics...</p>
     </div>
   `;
 
-  let homeStanding = null;
-  let awayStanding = null;
-  if (f.leagueId) {
-    try {
-      const sRes = await fetch(`/api/standings?league=${f.leagueId}`);
-      const sData = await sRes.json();
-      const list = sData.standings || [];
-      homeStanding = list.find(s => s.team.name.toLowerCase().includes(f.homeTeam.name.toLowerCase()) || f.homeTeam.name.toLowerCase().includes(s.team.name.toLowerCase()));
-      awayStanding = list.find(s => s.team.name.toLowerCase().includes(f.awayTeam.name.toLowerCase()) || f.awayTeam.name.toLowerCase().includes(s.team.name.toLowerCase()));
-    } catch (e) {}
-  }
+  let details = null;
+  try {
+    const res = await fetch(`/api/matches/${f.id}/details`);
+    if (res.ok) {
+      const data = await res.json();
+      details = data.details;
+    }
+  } catch (e) {}
 
-  const isLive = ['1H', '2H', 'HT', 'ET', 'P', 'LIVE'].includes(f.status);
-  const statusBadge = isLive
-    ? `<span class="modal-badge" style="background:rgba(239,68,68,0.2); color:#ef4444;"><span class="pulse-dot"></span> LIVE ${f.elapsed ? f.elapsed + "'" : ''} ${f.status}</span>`
-    : `<span class="modal-badge">${f.status === 'FT' ? 'FULL TIME' : 'SCHEDULED · ' + formatKickoff(f.kickoff)}</span>`;
-
-  const renderFormPills = (formStr) => {
-    if (!formStr) return '<span style="color:var(--sideline); font-size:0.8rem;">No form data</span>';
-    return `<div class="form-badges-wrap">
-      ${formStr.split('').slice(-5).map(ch => {
-        const c = ch.toUpperCase();
-        const cls = c === 'W' ? 'w' : c === 'D' ? 'd' : 'l';
-        return `<span class="form-pill ${cls}">${c}</span>`;
-      }).join('')}
-    </div>`;
+  activeMatchDetails = details || {
+    fixture: f,
+    stats: [
+      { name: 'possessionPct', label: 'Possession %', homeValue: '50%', awayValue: '50%', homePct: 50, awayPct: 50 },
+      { name: 'totalShots', label: 'Total Shots', homeValue: '0', awayValue: '0', homePct: 50, awayPct: 50 },
+      { name: 'shotsOnTarget', label: 'Shots on Target', homeValue: '0', awayValue: '0', homePct: 50, awayPct: 50 },
+      { name: 'wonCorners', label: 'Corner Kicks', homeValue: '0', awayValue: '0', homePct: 50, awayPct: 50 },
+      { name: 'foulsCommitted', label: 'Fouls', homeValue: '0', awayValue: '0', homePct: 50, awayPct: 50 },
+      { name: 'accuratePasses', label: 'Passes Completed', homeValue: '0', awayValue: '0', homePct: 50, awayPct: 50 }
+    ],
+    lineups: {
+      home: { team: f.homeTeam, formation: '4-3-3', starters: [], substitutes: [] },
+      away: { team: f.awayTeam, formation: '4-3-3', starters: [], substitutes: [] }
+    },
+    timeline: f.events || [],
+    commentary: []
   };
 
+  renderMatchCenterTabBody();
+}
+
+function renderMatchCenterTabBody() {
+  const body = document.getElementById('matchModalBody');
+  if (!body || !activeMatchDetails) return;
+
+  const f = activeMatchDetails.fixture;
+  const isLive = ['1H', '2H', 'HT', 'ET', 'P', 'LIVE'].includes(f.status);
   const homeScore = f.score?.home !== null && f.score?.home !== undefined ? f.score.home : '-';
   const awayScore = f.score?.away !== null && f.score?.away !== undefined ? f.score.away : '-';
 
-  body.innerHTML = `
+  const headerHtml = `
     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
       <div>
-        ${statusBadge}
+        <span class="mc-status-pill ${isLive ? 'live' : ''}">${isLive ? '🔴 LIVE ' + (f.elapsed ? f.elapsed + "'" : '') : f.status === 'FT' ? 'FULL TIME' : 'SCHEDULED'}</span>
         <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
           <img src="${f.leagueLogo}" alt="${f.leagueName}" style="width:20px; height:20px; object-fit:contain;" onerror="this.style.display='none'">
-          <span style="font-weight:600; color:var(--text-light); font-size:0.95rem;">${f.leagueName}</span>
+          <span style="font-weight:600; color:var(--text-main); font-size:0.95rem;">${f.leagueName}</span>
           <span style="color:var(--sideline); font-size:0.85rem;">· ${f.round || 'Matchday'}</span>
         </div>
       </div>
       <div style="font-size:0.82rem; color:var(--sideline); text-align:right;">
         🏟️ ${f.venue || 'Stadium'}<br>
-        📅 ${formatKickoffDate(f.kickoff)}
+        📅 ${formatKickoffDate(f.kickoff)} · ${formatKickoffTime(f.kickoff)}
       </div>
     </div>
 
-    <!-- Head-to-Head Banner -->
-    <div class="h2h-banner">
-      <div class="h2h-team">
+    <!-- Dual Team Crests & Score Banner -->
+    <div class="mc-header">
+      <div class="mc-team-side">
         <img src="${f.homeTeam.logo}" alt="${f.homeTeam.name}" onerror="this.style.display='none'">
-        <span class="h2h-team-name">${f.homeTeam.name}</span>
-        ${homeStanding ? `<span style="font-size:0.8rem; color:var(--pitch-green); font-weight:600;">#${homeStanding.rank} in Table (${homeStanding.points} pts)</span>` : ''}
+        <span class="mc-team-name">${f.homeTeam.name}</span>
       </div>
 
-      <div class="h2h-vs">
-        ${isLive || f.status === 'FT'
-          ? `<div class="h2h-score-big">${homeScore} - ${awayScore}</div>`
-          : `<div class="h2h-vs-badge">VS</div><span style="font-size:0.75rem; color:var(--sideline);">${formatKickoffTime(f.kickoff)}</span>`
-        }
+      <div class="mc-score-side">
+        <div class="mc-score-display">${homeScore} - ${awayScore}</div>
+        <span style="font-size:0.8rem; color:var(--sideline); font-weight:600;">${isLive ? 'IN PLAY' : f.status === 'FT' ? 'FINAL' : 'KICKOFF'}</span>
       </div>
 
-      <div class="h2h-team">
+      <div class="mc-team-side">
         <img src="${f.awayTeam.logo}" alt="${f.awayTeam.name}" onerror="this.style.display='none'">
-        <span class="h2h-team-name">${f.awayTeam.name}</span>
-        ${awayStanding ? `<span style="font-size:0.8rem; color:var(--pitch-green); font-weight:600;">#${awayStanding.rank} in Table (${awayStanding.points} pts)</span>` : ''}
+        <span class="mc-team-name">${f.awayTeam.name}</span>
       </div>
     </div>
+  `;
 
-    <!-- H2H Comparison Stats -->
-    <div class="h2h-stats-grid">
-      <div class="h2h-stat-row">
-        ${renderFormPills(homeStanding?.form)}
-        <span class="h2h-stat-label">Recent Form Guide</span>
-        ${renderFormPills(awayStanding?.form)}
-      </div>
+  let tabContentHtml = '';
 
-      ${(homeStanding && awayStanding) ? `
-      <div class="h2h-stat-row">
-        <span style="font-weight:700; color:#fff;">${homeStanding.win}W / ${homeStanding.draw}D / ${homeStanding.lose}L</span>
-        <span class="h2h-stat-label">Season Record (W/D/L)</span>
-        <span style="font-weight:700; color:#fff;">${awayStanding.win}W / ${awayStanding.draw}D / ${awayStanding.lose}L</span>
-      </div>
-      <div class="h2h-stat-row">
-        <span style="font-weight:700; font-family:'IBM Plex Mono',monospace; color:${homeStanding.goalsDiff > 0 ? 'var(--pitch-green)' : '#ef4444'}">${homeStanding.goalsDiff > 0 ? '+' + homeStanding.goalsDiff : homeStanding.goalsDiff}</span>
-        <span class="h2h-stat-label">Goal Difference</span>
-        <span style="font-weight:700; font-family:'IBM Plex Mono',monospace; color:${awayStanding.goalsDiff > 0 ? 'var(--pitch-green)' : '#ef4444'}">${awayStanding.goalsDiff > 0 ? '+' + awayStanding.goalsDiff : awayStanding.goalsDiff}</span>
-      </div>
-      ` : ''}
-    </div>
+  if (currentActiveMatchCenterTab === 'stats') {
+    const stats = activeMatchDetails.stats || [];
+    if (stats.length === 0) {
+      tabContentHtml = `<div style="text-align:center; padding:30px; color:var(--sideline);">Detailed match statistics will be available once the match begins.</div>`;
+    } else {
+      tabContentHtml = `
+        <div style="margin-top:10px;">
+          ${stats.map(s => `
+            <div class="stat-bar-row">
+              <div class="stat-bar-labels">
+                <span style="color:var(--pitch-green); font-family:'IBM Plex Mono',monospace;">${s.homeValue}</span>
+                <span class="stat-bar-name">${s.label}</span>
+                <span style="color:#3b82f6; font-family:'IBM Plex Mono',monospace;">${s.awayValue}</span>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-fill-home" style="width:${s.homePct}%;"></div>
+                <div class="stat-bar-fill-away" style="width:${s.awayPct}%;"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+  } else if (currentActiveMatchCenterTab === 'lineups') {
+    const homeLineup = activeMatchDetails.lineups?.home;
+    const awayLineup = activeMatchDetails.lineups?.away;
 
-    ${(f.events && f.events.length > 0) ? `
-    <div style="background:rgba(0,0,0,0.25); border-radius:10px; padding:14px; margin-bottom:20px;">
-      <h4 style="font-size:0.88rem; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Match Events & Scorers</h4>
-      <div style="display:flex; flex-direction:column; gap:6px;">
-        ${f.events.map(e => `
-          <div style="display:flex; align-items:center; gap:8px; font-size:0.85rem;">
-            <span style="color:var(--pitch-green); font-weight:700;">${e.time.elapsed}'</span>
-            <span>${e.type === 'Goal' ? '⚽' : '🟨'}</span>
-            <strong>${e.player.name}</strong> (${e.team.name})
+    const renderPitchSide = (lineup, sideLabel) => {
+      if (!lineup || !Array.isArray(lineup.starters) || lineup.starters.length === 0) {
+        return `<p style="color:var(--sideline); padding:12px; font-size:0.85rem;">Lineup not yet announced.</p>`;
+      }
+      return `
+        <div class="pitch-team-title">${lineup.team?.name} (${lineup.formation || 'Starting XI'})</div>
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin: 10px 0;">
+          ${lineup.starters.map(p => `
+            <div class="pitch-player-node" onclick="openPlayerProfile('${p.id}')" title="View ${p.name}'s Profile">
+              <div class="pitch-jersey">${p.jersey !== '-' ? p.jersey : '•'}</div>
+              <span class="pitch-player-name">${p.name}</span>
+              <span style="font-size:0.65rem; color:#fef08a;">${p.position}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    };
+
+    const renderBench = (lineup) => {
+      if (!lineup || !Array.isArray(lineup.substitutes) || lineup.substitutes.length === 0) return '';
+      return `
+        <div style="margin-top:14px;">
+          <h5 style="font-size:0.8rem; color:var(--sideline); text-transform:uppercase; margin-bottom:6px;">${lineup.team?.name} Substitutes</h5>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            ${lineup.substitutes.map(p => `
+              <div class="player-chip" onclick="openPlayerProfile('${p.id}')" style="cursor:pointer;" title="View Profile">
+                <span class="jersey-badge">#${p.jersey}</span>
+                <span>${p.name}</span>
+              </div>
+            `).join('')}
           </div>
-        `).join('')}
-      </div>
-    </div>` : ''}
+        </div>
+      `;
+    };
 
-    <!-- Modal Action Buttons -->
+    tabContentHtml = `
+      <div>
+        <div class="football-pitch">
+          ${renderPitchSide(homeLineup, 'Home')}
+          <div style="height:1px; background:rgba(255,255,255,0.2); margin:12px 0;"></div>
+          ${renderPitchSide(awayLineup, 'Away')}
+        </div>
+        <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px;">
+          <h4 style="font-size:0.88rem; font-weight:700; color:var(--text-main); margin-bottom:12px;">Bench Substitutes</h4>
+          ${renderBench(homeLineup)}
+          ${renderBench(awayLineup)}
+        </div>
+      </div>
+    `;
+  } else if (currentActiveMatchCenterTab === 'timeline') {
+    const timeline = activeMatchDetails.timeline || [];
+    if (timeline.length === 0) {
+      tabContentHtml = `<div style="text-align:center; padding:30px; color:var(--sideline);">No match events recorded yet.</div>`;
+    } else {
+      tabContentHtml = `
+        <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px;">
+          ${timeline.map(e => `
+            <div class="timeline-item">
+              <span class="timeline-minute">${e.time.elapsed}'</span>
+              <span class="timeline-icon">${e.type === 'Goal' ? '⚽' : e.type === 'Card' ? '🟨' : e.type === 'subst' ? '🔄' : '📌'}</span>
+              <div class="timeline-desc">
+                <strong>${e.player?.name || e.detail}</strong> 
+                <span style="color:var(--sideline);">(${e.team.name})</span>
+                ${e.detail && e.detail !== e.player?.name ? `<div style="font-size:0.8rem; color:var(--text-muted);">${e.detail}</div>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+  } else if (currentActiveMatchCenterTab === 'h2h') {
+    tabContentHtml = `
+      <div id="h2hTabContainer">
+        <div style="text-align:center; padding:30px; color:var(--sideline);">
+          <p>Loading last 10 Head-to-Head encounters between ${f.homeTeam.name} and ${f.awayTeam.name}...</p>
+        </div>
+      </div>
+    `;
+    // Load H2H asynchronously
+    setTimeout(() => {
+      loadH2HInsideModal(f.homeTeam.name, f.awayTeam.name);
+    }, 50);
+  }
+
+  body.innerHTML = `
+    ${headerHtml}
+    ${tabContentHtml}
     <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
       <button class="primary-btn" style="flex:1; margin-top:0;" onclick="quickSubscribeMatch('${f.homeTeam.name}', '${f.awayTeam.name}')">
         🔔 Set Alert for this Match
@@ -938,10 +1045,442 @@ async function openMatchModal(f) {
   `;
 }
 
+async function loadH2HInsideModal(team1, team2) {
+  const container = document.getElementById('h2hTabContainer');
+  if (!container) return;
+
+  try {
+    const res = await fetch(`/api/h2h?team1=${encodeURIComponent(team1)}&team2=${encodeURIComponent(team2)}`);
+    if (!res.ok) {
+      container.innerHTML = `<p style="color:var(--sideline); text-align:center; padding:20px;">No previous direct encounters found between these two teams in recent history.</p>`;
+      return;
+    }
+    const data = await res.json();
+    const h = data.h2h;
+
+    container.innerHTML = `
+      <div class="h2h-summary-box">
+        <div>
+          <div class="h2h-stat-num" style="color:var(--pitch-green);">${h.team1Wins}</div>
+          <div class="h2h-stat-label">${h.team1.name} Wins</div>
+        </div>
+        <div>
+          <div class="h2h-stat-num" style="color:var(--sideline);">${h.draws}</div>
+          <div class="h2h-stat-label">Draws</div>
+        </div>
+        <div>
+          <div class="h2h-stat-num" style="color:#3b82f6;">${h.team2Wins}</div>
+          <div class="h2h-stat-label">${h.team2.name} Wins</div>
+        </div>
+        <div>
+          <div class="h2h-stat-num" style="color:var(--accent-gold);">${h.team1Goals} - ${h.team2Goals}</div>
+          <div class="h2h-stat-label">Goal Tallies</div>
+        </div>
+      </div>
+
+      <h4 style="font-size:0.88rem; font-weight:700; color:var(--text-main); margin-bottom:12px;">Last ${h.recentMeetings.length} Meetings</h4>
+      <div class="h2h-meetings-list">
+        ${h.recentMeetings.map(m => {
+          const isT1Win = m.winnerId === h.team1.id;
+          const isT2Win = m.winnerId === h.team2.id;
+          const isDraw = m.winnerId === null;
+          const badgeClass = isDraw ? 'draw' : isT1Win ? 'win' : 'loss';
+          const badgeText = isDraw ? 'DRAW' : isT1Win ? `${h.team1.name} WIN` : `${h.team2.name} WIN`;
+
+          return `
+            <div class="h2h-card">
+              <div>
+                <span class="h2h-pill-res ${badgeClass}">${badgeText}</span>
+                <span class="h2h-card-date" style="margin-left:8px;">${formatKickoffDate(m.date)} · ${m.competition}</span>
+              </div>
+              <div class="h2h-teams-score">
+                <span>${m.homeTeam.name}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-weight:800; font-size:1.1rem; color:var(--text-main);">${m.score.home !== null ? m.score.home : '-'} : ${m.score.away !== null ? m.score.away : '-'}</span>
+                <span>${m.awayTeam.name}</span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--sideline); text-align:center;">Failed to load H2H records.</p>`;
+  }
+}
+
 function closeMatchModal(e) {
   if (e && e.target !== e.currentTarget && !e.target.classList.contains('modal-close-btn')) return;
   const modal = document.getElementById('matchDetailsModal');
   if (modal) modal.classList.remove('open');
+}
+
+// ===================================================
+// 11. Top Scorers & Assists Leaderboard
+// ===================================================
+async function loadLeadersSection() {
+  initLeadersLeagueTabs();
+  fetchLeagueLeaders(currentLeadersLeagueId);
+}
+
+function initLeadersLeagueTabs() {
+  const container = document.getElementById('leadersLeagueTabs');
+  if (!container || container.children.length > 0) return;
+
+  container.innerHTML = '';
+  for (const league of allTrackedLeagues) {
+    const btn = document.createElement('button');
+    btn.className = `tab-btn ${league.id === currentLeadersLeagueId ? 'active' : ''}`;
+    btn.innerHTML = `<img src="${league.logo}" alt="${league.name}" onerror="this.style.display='none'"> ${league.name}`;
+    btn.onclick = () => {
+      currentLeadersLeagueId = league.id;
+      updateActiveTab(container, btn);
+      fetchLeagueLeaders(league.id);
+    };
+    container.appendChild(btn);
+  }
+}
+
+function switchLeaderCategory(cat) {
+  currentLeaderCategory = cat;
+  document.getElementById('btnScorers')?.classList.toggle('active', cat === 'scorers');
+  document.getElementById('btnAssists')?.classList.toggle('active', cat === 'assists');
+  fetchLeagueLeaders(currentLeadersLeagueId);
+}
+
+async function fetchLeagueLeaders(leagueId) {
+  const container = document.getElementById('leadersTableContainer');
+  if (!container) return;
+
+  container.innerHTML = `<p style="color:var(--sideline); padding:24px; text-align:center;">Loading ${currentLeaderCategory === 'scorers' ? 'top scorers' : 'top assists'}…</p>`;
+
+  try {
+    const res = await fetch(`/api/leagues/${leagueId}/leaders`);
+    if (!res.ok) {
+      container.innerHTML = `<p style="color:var(--sideline); padding:24px; text-align:center;">No statistics available for this league currently.</p>`;
+      return;
+    }
+    const data = await res.json();
+    const leaders = data.leaders;
+    const playerList = currentLeaderCategory === 'scorers' ? (leaders.topScorers || []) : (leaders.topAssists || []);
+
+    if (playerList.length === 0) {
+      container.innerHTML = `<p style="color:var(--sideline); padding:24px; text-align:center;">No player data available.</p>`;
+      return;
+    }
+
+    const metricTitle = currentLeaderCategory === 'scorers' ? 'Goals' : 'Assists';
+
+    container.innerHTML = `
+      <table class="leaders-table">
+        <thead>
+          <tr>
+            <th style="width:50px; text-align:center;">Rank</th>
+            <th>Player</th>
+            <th>Club</th>
+            <th style="text-align:center;">Appearances</th>
+            <th style="text-align:right;">${metricTitle}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${playerList.map(p => {
+            const rankMedal = p.rank === 1 ? '🥇' : p.rank === 2 ? '🥈' : p.rank === 3 ? '🥉' : p.rank;
+            const rankClass = p.rank <= 3 ? `rank-${p.rank}` : '';
+
+            return `
+              <tr onclick="openPlayerProfile('${p.id}')" title="Click to view full player profile">
+                <td style="text-align:center;">
+                  <span class="rank-badge ${rankClass}">${rankMedal}</span>
+                </td>
+                <td>
+                  <div class="leader-player-cell">
+                    <img class="leader-player-avatar" src="https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/${p.id}.png&w=90&h=65" onerror="this.src='https://a.espncdn.com/i/headshots/nophoto.png'" alt="${p.name}">
+                    <div>
+                      <div style="font-weight:700; color:var(--text-main);">${p.name}</div>
+                      <div style="font-size:0.75rem; color:var(--sideline);">${p.jersey ? '#' + p.jersey : ''}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="club-cell">
+                    <img src="${p.team.logo}" alt="${p.team.name}" onerror="this.style.display='none'">
+                    <span>${p.team.name}</span>
+                  </div>
+                </td>
+                <td style="text-align:center; font-family:'IBM Plex Mono',monospace; color:var(--text-muted);">
+                  ${p.appearances || '-'}
+                </td>
+                <td style="text-align:right;">
+                  <span class="leader-val">${p.value}</span>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--sideline); padding:24px; text-align:center;">Error fetching statistics.</p>`;
+  }
+}
+
+// ===================================================
+// 12. Player Profile Modal
+// ===================================================
+async function openPlayerProfile(playerId) {
+  const modal = document.getElementById('playerProfileModal');
+  const body = document.getElementById('playerProfileBody');
+  if (!modal || !body) return;
+
+  modal.classList.add('open');
+  body.innerHTML = `
+    <div style="text-align:center; padding: 50px 0;">
+      <p style="color:var(--sideline)">Loading player bio and performance stats...</p>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`/api/players/${playerId}`);
+    if (!res.ok) {
+      body.innerHTML = `<p style="color:var(--sideline); padding:30px; text-align:center;">Player profile not available.</p>`;
+      return;
+    }
+    const data = await res.json();
+    const p = data.profile;
+
+    body.innerHTML = `
+      <div class="player-hero-header">
+        <img class="player-big-photo" src="${p.photo}" onerror="this.src='https://a.espncdn.com/i/headshots/nophoto.png'" alt="${p.name}">
+        <div class="player-hero-info">
+          <div style="font-size:0.8rem; color:var(--pitch-green); font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">
+            ${p.position} ${p.jersey ? '· #' + p.jersey : ''}
+          </div>
+          <h2 class="player-hero-name">${p.name}</h2>
+          <div class="player-hero-team">
+            <img src="${p.team.logo}" alt="${p.team.name}" onerror="this.style.display='none'">
+            <span>${p.team.name}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="player-bio-bar">
+        <div>
+          <div class="bio-item-label">Age</div>
+          <div class="bio-item-val">${p.age ? p.age + ' yrs' : '-'}</div>
+        </div>
+        <div>
+          <div class="bio-item-label">Nationality</div>
+          <div class="bio-item-val">${p.flag ? `<img src="${p.flag}" style="width:14px; height:10px; margin-right:4px;">` : ''}${p.nationality || '-'}</div>
+        </div>
+        <div>
+          <div class="bio-item-label">Height</div>
+          <div class="bio-item-val">${p.height || '-'}</div>
+        </div>
+        <div>
+          <div class="bio-item-label">Weight</div>
+          <div class="bio-item-val">${p.weight || '-'}</div>
+        </div>
+      </div>
+
+      <div class="player-stats-section">
+        <h4 style="font-size:0.85rem; font-weight:700; color:var(--sideline); text-transform:uppercase; margin-bottom:14px; letter-spacing:0.05em;">
+          Season Statistics (${p.stats.season || '2024-25'})
+        </h4>
+        <div class="player-stat-cards">
+          <div class="stat-counter-card">
+            <div class="stat-counter-val">${p.stats.goals}</div>
+            <div class="stat-counter-label">Goals</div>
+          </div>
+          <div class="stat-counter-card">
+            <div class="stat-counter-val" style="color:#3b82f6;">${p.stats.assists}</div>
+            <div class="stat-counter-label">Assists</div>
+          </div>
+          <div class="stat-counter-card">
+            <div class="stat-counter-val" style="color:var(--accent-gold);">${p.stats.appearances}</div>
+            <div class="stat-counter-label">Appearances</div>
+          </div>
+        </div>
+        
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button class="tab-btn" style="flex:1;" onclick="closePlayerModal(); navigateTo('squads'); lookupClubSquad('${p.team.name}')">
+            👥 View Full ${p.team.name} Squad
+          </button>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    body.innerHTML = `<p style="color:var(--sideline); padding:30px; text-align:center;">Failed to load player details.</p>`;
+  }
+}
+
+function closePlayerModal(e) {
+  if (e && e.target !== e.currentTarget && !e.target.classList.contains('modal-close-btn')) return;
+  const modal = document.getElementById('playerProfileModal');
+  if (modal) modal.classList.remove('open');
+}
+
+// ===================================================
+// 13. Omnichannel Global Search Bar
+// ===================================================
+let globalSearchTimeout = null;
+
+function initGlobalSearch() {
+  const input = document.getElementById('globalSearchInput');
+  const dropdown = document.getElementById('globalSearchDropdown');
+  const clearBtn = document.getElementById('globalSearchClear');
+  if (!input || !dropdown) return;
+
+  input.addEventListener('input', (e) => {
+    const val = e.target.value.trim();
+    if (clearBtn) clearBtn.style.display = val ? 'flex' : 'none';
+
+    if (val.length < 2) {
+      dropdown.style.display = 'none';
+      dropdown.innerHTML = '';
+      return;
+    }
+
+    clearTimeout(globalSearchTimeout);
+    globalSearchTimeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(val)}`);
+        const data = await res.json();
+        renderGlobalSearchDropdown(data);
+      } catch (err) {
+        console.error('Search error:', err);
+      }
+    }, 220);
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.global-search-wrap')) {
+      dropdown.style.display = 'none';
+    }
+  });
+
+  // Close dropdown on Escape
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      dropdown.style.display = 'none';
+    }
+  });
+}
+
+function clearGlobalSearch() {
+  const input = document.getElementById('globalSearchInput');
+  const dropdown = document.getElementById('globalSearchDropdown');
+  const clearBtn = document.getElementById('globalSearchClear');
+  if (input) input.value = '';
+  if (clearBtn) clearBtn.style.display = 'none';
+  if (dropdown) {
+    dropdown.style.display = 'none';
+    dropdown.innerHTML = '';
+  }
+}
+
+function renderGlobalSearchDropdown(data) {
+  const dropdown = document.getElementById('globalSearchDropdown');
+  if (!dropdown) return;
+
+  const hasTeams = data.teams && data.teams.length > 0;
+  const hasPlayers = data.players && data.players.length > 0;
+  const hasFixtures = data.fixtures && data.fixtures.length > 0;
+
+  if (!hasTeams && !hasPlayers && !hasFixtures) {
+    dropdown.innerHTML = `<div style="padding:16px; color:var(--sideline); text-align:center;">No results found for "${data.query}".</div>`;
+    dropdown.style.display = 'block';
+    return;
+  }
+
+  let html = '';
+
+  if (hasTeams) {
+    html += `<div class="dropdown-section-title">🏟️ Clubs</div>`;
+    for (const t of data.teams) {
+      html += `
+        <div class="dropdown-item" onclick="selectSearchClub('${t.name}')">
+          <img src="${t.logo}" alt="${t.name}" onerror="this.style.display='none'">
+          <div>
+            <div class="dropdown-item-title">${t.name}</div>
+            <div class="dropdown-item-sub">View squad & upcoming matches</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  if (hasPlayers) {
+    html += `<div class="dropdown-section-title">👤 Players</div>`;
+    for (const p of data.players) {
+      html += `
+        <div class="dropdown-item" onclick="selectSearchPlayer('${p.id || p.name}')">
+          <img src="${p.teamLogo}" alt="${p.teamName}" onerror="this.style.display='none'">
+          <div>
+            <div class="dropdown-item-title">${p.name} ${p.jersey ? '#' + p.jersey : ''}</div>
+            <div class="dropdown-item-sub">${p.position || 'Player'} · ${p.teamName}</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  if (hasFixtures) {
+    html += `<div class="dropdown-section-title">📅 Matches & Fixtures</div>`;
+    for (const f of data.fixtures) {
+      html += `
+        <div class="dropdown-item" onclick="selectSearchFixture(${f.id})">
+          <img src="${f.leagueLogo}" alt="${f.leagueName}" onerror="this.style.display='none'">
+          <div>
+            <div class="dropdown-item-title">${f.homeTeam.name} vs ${f.awayTeam.name}</div>
+            <div class="dropdown-item-sub">${f.leagueName} · ${formatKickoffDate(f.kickoff)}</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  dropdown.innerHTML = html;
+  dropdown.style.display = 'block';
+}
+
+function selectSearchClub(teamName) {
+  clearGlobalSearch();
+  navigateTo('squads');
+  lookupClubSquad(teamName);
+}
+
+function selectSearchPlayer(playerIdOrName) {
+  clearGlobalSearch();
+  openPlayerProfile(playerIdOrName);
+}
+
+function selectSearchFixture(fixtureId) {
+  clearGlobalSearch();
+  openMatchModal({ id: fixtureId, homeTeam: { name: 'Home' }, awayTeam: { name: 'Away' } });
+}
+
+// ===================================================
+// 14. Theme Toggle (Dark / Light Mode)
+// ===================================================
+function initTheme() {
+  const saved = localStorage.getItem('goalhub_theme');
+  if (saved === 'light') {
+    document.body.classList.add('light-theme');
+    updateThemeIcon('☀️');
+  } else {
+    updateThemeIcon('🌙');
+  }
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-theme');
+  localStorage.setItem('goalhub_theme', isLight ? 'light' : 'dark');
+  updateThemeIcon(isLight ? '☀️' : '🌙');
+}
+
+function updateThemeIcon(icon) {
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) btn.textContent = icon;
 }
 
 async function quickSubscribeMatch(home, away) {

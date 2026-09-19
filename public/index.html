@@ -21,9 +21,11 @@
       <button class="nav-btn" data-view="matches" onclick="navigateTo('matches')">📅 Matches & Schedules</button>
       <button class="nav-btn" data-view="squads" onclick="navigateTo('squads')">👥 Squads</button>
       <button class="nav-btn" data-view="standings" onclick="navigateTo('standings')">🏆 Standings</button>
+      <button class="nav-btn" data-view="leaders" onclick="navigateTo('leaders')">📊 Top Scorers</button>
       <button class="nav-btn alerts-nav-highlight" data-view="alerts" onclick="openAlertsModal()">🔔 Alerts</button>
       <button class="nav-btn" onclick="openWhatsAppModal()" style="background:#25d366; color:#000; font-weight:700; border-color:#25d366; box-shadow:0 0 12px rgba(37,211,102,0.3);">💬 WhatsApp</button>
-      <button class="nav-btn" onclick="openDiscordModal()" style="background:#5865f2; color:#fff; font-weight:700; border-color:#5865f2; box-shadow:0 0 12px rgba(88,101,242,0.35);">🎮 Discord Bot</button>
+      <button class="nav-btn" onclick="openDiscordModal()" style="background:#5865f2; color:#fff; font-weight:700; border-color:#5865f2; box-shadow:0 0 12px rgba(88,101,242,0.35);">🎮 Discord</button>
+      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
     </nav>
   </div>
 </header>
@@ -44,11 +46,15 @@
     </div>
   </div>
 
-  <div class="ask-wrap">
-    <form id="askForm" class="ask-box">
-      <input id="askInput" type="text" placeholder="Ask e.g. &quot;next arsenal match&quot;, &quot;fc barcelona squad&quot;, or &quot;who is playing live&quot;" autocomplete="off">
-      <button type="submit">Ask</button>
-    </form>
+  <div class="global-search-wrap">
+    <div class="global-search-bar-wrap">
+      <div class="search-input-box">
+        <span class="search-icon">🔍</span>
+        <input id="globalSearchInput" type="text" placeholder="Search clubs, players (e.g. Haaland, Yamal), or matches..." autocomplete="off">
+        <button id="globalSearchClear" onclick="clearGlobalSearch()" style="display:none;" class="search-clear-btn">✕</button>
+      </div>
+      <div id="globalSearchDropdown" class="search-dropdown" style="display:none;"></div>
+    </div>
     <div id="askAnswer"></div>
   </div>
 
@@ -135,12 +141,57 @@
   </div>
 </main>
 
-<!-- HEAD-TO-HEAD & MATCH DETAILS MODAL -->
+<!-- 6. TOP SCORERS & ASSISTS VIEW -->
+<main id="viewLeaders" class="view-section">
+  <div class="page-header">
+    <div class="page-title-wrap">
+      <span class="live-pill">🏆 GOLDEN BOOT & PLAYMAKERS</span>
+      <h2>Top Scorers & Assists</h2>
+    </div>
+    <p class="page-sub">Official goalscoring and playmaking leaders across Premier League, La Liga, Champions League & European leagues.</p>
+  </div>
+  
+  <div class="tabs" id="leadersLeagueTabs"></div>
+
+  <div class="leaders-filter-row">
+    <div class="toggle-group">
+      <button class="toggle-pill active" id="btnScorers" onclick="switchLeaderCategory('scorers')">⚽ Top Scorers</button>
+      <button class="toggle-pill" id="btnAssists" onclick="switchLeaderCategory('assists')">🎯 Top Assists</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="leaders-table-wrap" id="leadersTableContainer">
+      <p style="color:var(--sideline)">Loading leaders…</p>
+    </div>
+  </div>
+</main>
+
+<!-- MATCH CENTER & H2H MODAL -->
 <div id="matchDetailsModal" class="modal-backdrop" onclick="closeMatchModal(event)">
   <div class="modal-card match-modal-content" onclick="event.stopPropagation()">
     <button class="modal-close-btn" onclick="closeMatchModal()">×</button>
+    
+    <!-- Sub-navigation tabs inside Match Center -->
+    <div class="mc-tabs">
+      <button class="mc-tab-btn active" data-mctab="stats" onclick="switchMatchCenterTab('stats')">📊 Match Stats</button>
+      <button class="mc-tab-btn" data-mctab="lineups" onclick="switchMatchCenterTab('lineups')">👥 Lineups & Formations</button>
+      <button class="mc-tab-btn" data-mctab="timeline" onclick="switchMatchCenterTab('timeline')">⏱️ Timeline</button>
+      <button class="mc-tab-btn" data-mctab="h2h" onclick="switchMatchCenterTab('h2h')">⚔️ H2H History (Last 10)</button>
+    </div>
+
     <div id="matchModalBody">
       <p style="color:var(--sideline)">Loading match insights...</p>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER PROFILE MODAL -->
+<div id="playerProfileModal" class="modal-backdrop" onclick="closePlayerModal(event)">
+  <div class="modal-card player-modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close-btn" onclick="closePlayerModal()">×</button>
+    <div id="playerProfileBody">
+      <p style="color:var(--sideline)">Loading player profile...</p>
     </div>
   </div>
 </div>
