@@ -36,6 +36,13 @@ export interface MatchEvent {
   comments?: string | null;
 }
 
+export interface MatchPrediction {
+  homeWinPct: number;
+  drawPct: number;
+  awayWinPct: number;
+  source: 'odds' | 'form' | 'live' | 'bpi';
+}
+
 export interface Fixture {
   id: number;
   leagueId: number;
@@ -51,6 +58,7 @@ export interface Fixture {
   score: FixtureScore;
   venue?: string;
   events?: MatchEvent[];
+  prediction?: MatchPrediction;
 }
 
 export interface StandingTeam {
@@ -135,6 +143,8 @@ export interface TeamLineup {
   coach?: string;
   starters: LineupPlayer[];
   substitutes: LineupPlayer[];
+  confirmed?: boolean;
+  isProjected?: boolean;
 }
 
 export interface MatchDetails {

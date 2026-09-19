@@ -22,78 +22,294 @@
 </head>
 <body>
 
-<!-- Top Navigation Bar -->
-<header class="navbar">
-  <div class="nav-container">
-    <div class="brand" onclick="navigateTo('dashboard')">
-      <img src="/static/logo.png" alt="GoalHub" class="brand-logo-img">
-      <span>Goal<span>Hub</span></span>
+<div class="app-layout">
+  <!-- Left Sidebar Navigation -->
+  <aside class="app-sidebar" id="appSidebar">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <div class="brand" onclick="navigateTo('dashboard')">
+        <img src="/static/logo.png" alt="GoalHub" class="brand-logo-img">
+        <div class="brand-text-wrap">
+          <span class="brand-title">Goal<span class="brand-highlight">Hub</span></span>
+          <span class="brand-tag">v2.5 PRO</span>
+        </div>
+      </div>
+      <button class="sidebar-close-btn" id="sidebarCloseBtn" onclick="toggleSidebar(false)" aria-label="Close sidebar">✕</button>
     </div>
-    <nav class="nav-links">
-      <button class="nav-btn active" data-view="dashboard" onclick="navigateTo('dashboard')">⚡ Dashboard</button>
-      <button class="nav-btn" data-view="live" onclick="navigateTo('live')"><span class="nav-pulse"></span> Live Matches</button>
-      <button class="nav-btn" data-view="matches" onclick="navigateTo('matches')">📅 Matches & Schedules</button>
-      <button class="nav-btn" data-view="squads" onclick="navigateTo('squads')">👥 Squads</button>
-      <button class="nav-btn" data-view="standings" onclick="navigateTo('standings')">🏆 Standings</button>
-      <button class="nav-btn" data-view="leaders" onclick="navigateTo('leaders')">📊 Stats & Leaders</button>
-      <button class="nav-btn" data-view="news" onclick="navigateTo('news')">📰 News</button>
-      <button class="nav-btn alerts-nav-highlight" data-view="alerts" onclick="openAlertsModal()">🔔 Alerts</button>
-      <button class="nav-btn" onclick="openWhatsAppModal()" style="background:#25d366; color:#000; font-weight:700; border-color:#25d366; box-shadow:0 0 12px rgba(37,211,102,0.3);">💬 WhatsApp</button>
-      <button class="nav-btn" onclick="openDiscordModal()" style="background:#5865f2; color:#fff; font-weight:700; border-color:#5865f2; box-shadow:0 0 12px rgba(88,101,242,0.35);">🎮 Discord</button>
-      <button class="sound-toggle-btn" id="soundToggleBtn" onclick="toggleAudio()" title="Toggle Live Goal Sound Alert">🔊 Sound</button>
-      <button class="install-pwa-btn" id="installPwaBtn" onclick="installGoalHubPwa()" style="display:none;" title="Install GoalHub App">📲 Install</button>
-      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+
+    <!-- Sidebar Navigation Menu -->
+    <nav class="sidebar-nav">
+      <!-- Section 1: Main Menu -->
+      <div class="sidebar-group">
+        <span class="sidebar-group-title">MAIN NAVIGATION</span>
+        <button class="sidebar-nav-btn nav-btn active" data-view="dashboard" onclick="navigateTo('dashboard')">
+          <span class="sb-icon">⚡</span>
+          <span class="sb-label">Dashboard</span>
+        </button>
+        <button class="sidebar-nav-btn nav-btn" data-view="live" onclick="navigateTo('live')">
+          <span class="sb-icon">🔴</span>
+          <span class="sb-label">Live Matches</span>
+          <span class="sb-live-pulse"></span>
+        </button>
+        <button class="sidebar-nav-btn nav-btn" data-view="matches" onclick="navigateTo('matches')">
+          <span class="sb-icon">📅</span>
+          <span class="sb-label">Matches & Calendar</span>
+        </button>
+        <button class="sidebar-nav-btn nav-btn" data-view="squads" onclick="navigateTo('squads')">
+          <span class="sb-icon">👥</span>
+          <span class="sb-label">Squads & Formations</span>
+        </button>
+        <button class="sidebar-nav-btn nav-btn" data-view="standings" onclick="navigateTo('standings')">
+          <span class="sb-icon">🏆</span>
+          <span class="sb-label">League Tables</span>
+        </button>
+        <button class="sidebar-nav-btn nav-btn" data-view="leaders" onclick="navigateTo('leaders')">
+          <span class="sb-icon">📊</span>
+          <span class="sb-label">Stats & Leaders</span>
+        </button>
+        <button class="sidebar-nav-btn nav-btn" data-view="news" onclick="navigateTo('news')">
+          <span class="sb-icon">📰</span>
+          <span class="sb-label">Football News</span>
+        </button>
+      </div>
+
+      <!-- Section 2: Community & Alerts -->
+      <div class="sidebar-group">
+        <span class="sidebar-group-title">COMMUNITY & BOTS</span>
+        <button class="sidebar-nav-btn alerts-nav-highlight" data-view="alerts" onclick="openAlertsModal()">
+          <span class="sb-icon">🔔</span>
+          <span class="sb-label">Match Alerts Hub</span>
+        </button>
+        <button class="sidebar-nav-btn wa-sidebar-btn" onclick="openWhatsAppModal()">
+          <span class="sb-icon">💬</span>
+          <span class="sb-label">WhatsApp Bot</span>
+          <span class="sb-btn-badge wa-badge">Free</span>
+        </button>
+        <button class="sidebar-nav-btn dc-sidebar-btn" onclick="openDiscordModal()">
+          <span class="sb-icon">🎮</span>
+          <span class="sb-label">Discord Live Feed</span>
+          <span class="sb-btn-badge dc-badge">Bot</span>
+        </button>
+      </div>
+
+      <!-- Section 3: App Controls -->
+      <div class="sidebar-group">
+        <span class="sidebar-group-title">APP CONTROLS</span>
+        <button class="sidebar-nav-btn" id="soundToggleBtn" onclick="toggleAudio()" title="Toggle Live Goal Audio Alert">
+          <span class="sb-icon" id="soundIcon">🔊</span>
+          <span class="sb-label" id="soundLabel">Sound: ON</span>
+        </button>
+        <button class="sidebar-nav-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+          <span class="sb-icon" id="themeIcon">🌙</span>
+          <span class="sb-label" id="themeLabel">Dark Theme</span>
+        </button>
+        <button class="sidebar-nav-btn pwa-sidebar-btn" id="installPwaBtn" onclick="installGoalHubPwa()" style="display:none;" title="Install GoalHub App">
+          <span class="sb-icon">📲</span>
+          <span class="sb-label">Install App</span>
+        </button>
+      </div>
     </nav>
-  </div>
-</header>
 
-<!-- 1. DASHBOARD VIEW -->
-<main id="viewDashboard" class="view-section active">
-  <div class="hero">
-    <div class="hero-inner">
-      <h1 class="hero-title">Live European Football Hub</h1>
-      <p class="hero-sub">Premier League, La Liga, Serie A, Bundesliga, Ligue 1 & UEFA Competitions.</p>
-      <div class="next-up" id="nextUp">Loading marquee match…</div>
-      
-      <div class="notify-master">
-        <span id="notifyStatusText">Notifications are off.</span>
-        <button id="notifyBtn">Turn on notifications</button>
-        <button id="heroAlertsBtn" onclick="openAlertsModal()" style="margin-left:8px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:#fff; border-radius:6px; padding:7px 14px; font-size:0.85rem; font-weight:600; cursor:pointer;">🔔 Team Alerts Hub</button>
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="feed-status-indicator">
+        <span class="feed-dot"></span>
+        <span class="feed-status-text">ESPN Live Feed Active</span>
       </div>
     </div>
-  </div>
+  </aside>
 
-  <div class="global-search-wrap">
-    <div class="global-search-bar-wrap">
-      <div class="search-input-box">
-        <span class="search-icon">🔍</span>
-        <input id="globalSearchInput" type="text" placeholder="Search clubs, players (e.g. Haaland, Yamal), or matches..." autocomplete="off">
-        <button id="globalSearchClear" onclick="clearGlobalSearch()" style="display:none;" class="search-clear-btn">✕</button>
+  <!-- Mobile Backdrop -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+
+  <!-- Main Content Area -->
+  <div class="app-main">
+    <!-- Sleek Top Bar Header -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Toggle Sidebar Menu">
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+        </button>
+        <div class="topbar-brand" onclick="navigateTo('dashboard')">
+          <img src="/static/logo.png" alt="GoalHub" class="topbar-logo-img">
+          <span>Goal<span class="brand-highlight">Hub</span></span>
+        </div>
       </div>
-      <div id="globalSearchDropdown" class="search-dropdown" style="display:none;"></div>
-    </div>
-    <div id="askAnswer"></div>
-  </div>
 
-  <!-- Personalized Favorites Section (Phase 2) -->
-  <div id="personalizedFavoritesWrap" style="display:none;" class="favorites-feed-wrap">
-    <div class="section-header">
-      <h2 style="color:var(--accent-gold); display:flex; align-items:center; gap:8px;">
-        <span>⭐</span> My Favorite Clubs' Matches
-      </h2>
-      <span class="fav-count-tag" id="favCountTag">0 Clubs Followed</span>
-    </div>
-    <div id="favoritesLiveList" class="match-grid"></div>
-  </div>
+      <div class="topbar-center">
+        <!-- Universal Global Search Bar -->
+        <div class="topbar-search-box">
+          <span class="topbar-search-icon">🔍</span>
+          <input id="globalSearchInput" type="text" placeholder="Search clubs, players (e.g. Haaland, Yamal), or fixtures..." autocomplete="off">
+          <button id="globalSearchClear" onclick="clearGlobalSearch()" style="display:none;" class="search-clear-btn">✕</button>
+          <div id="globalSearchDropdown" class="search-dropdown" style="display:none;"></div>
+        </div>
+        <div id="askAnswer"></div>
+      </div>
 
-  <div class="quick-overview-wrap">
-    <div class="section-header">
-      <h2>🔥 Live & Recent Matchday Highlights</h2>
-      <button class="view-all-btn" onclick="navigateTo('matches')">View Full Schedule →</button>
-    </div>
-    <div id="dashboardLiveList" class="match-grid"></div>
-  </div>
-</main>
+      <div class="topbar-right">
+        <!-- Timezone Selector Dropdown -->
+        <div class="topbar-tz-pill">
+          <span class="tz-globe">🌐</span>
+          <select id="timezoneSelect" class="timezone-select" onchange="onTimezoneChange(this.value)" title="Change Timezone for Match Kickoff Times">
+            <option value="auto">Local (Device Time)</option>
+            <option value="UTC">UTC (GMT+0)</option>
+            <option value="Europe/London">London (GMT/BST)</option>
+            <option value="Europe/Paris">CET (Paris/Madrid/Berlin)</option>
+            <option value="America/New_York">US Eastern (EST/EDT)</option>
+            <option value="Asia/Karachi">PKT (Pakistan, GMT+5)</option>
+            <option value="Asia/Dubai">GST (Dubai, GMT+4)</option>
+            <option value="Asia/Kolkata">IST (India, GMT+5:30)</option>
+            <option value="Asia/Singapore">SGT (Singapore, GMT+8)</option>
+          </select>
+        </div>
+
+        <button class="topbar-quick-btn" onclick="openAlertsModal()" title="Alerts Hub">🔔</button>
+        <button class="topbar-quick-btn" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+      </div>
+    </header>
+
+    <!-- Page Content Container -->
+    <div class="app-content">
+      <!-- 1. DASHBOARD VIEW -->
+      <main id="viewDashboard" class="view-section active">
+        <div class="hero">
+          <div class="hero-inner">
+            <h1 class="hero-title">Live European Football Hub</h1>
+            <p class="hero-sub">Premier League, La Liga, Serie A, Bundesliga, Ligue 1 & UEFA Competitions.</p>
+            <div class="next-up" id="nextUp">Loading marquee match…</div>
+            
+            <div class="notify-master">
+              <span id="notifyStatusText">Notifications are off.</span>
+              <button id="notifyBtn">Turn on notifications</button>
+              <button id="heroAlertsBtn" onclick="openAlertsModal()" style="margin-left:8px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:#fff; border-radius:6px; padding:7px 14px; font-size:0.85rem; font-weight:600; cursor:pointer;">🔔 Team Alerts Hub</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard 2-Column Responsive Grid Layout -->
+        <div class="dashboard-grid-layout">
+          <!-- Main Area (Left Column) -->
+          <div class="dashboard-main-col">
+            <!-- Quick League Navigation Filter Pills -->
+            <div class="dash-filter-bar">
+              <span class="dash-filter-label">Quick Filter:</span>
+              <div class="dash-filter-pills" id="dashFilterPills">
+                <button class="dash-pill active" onclick="filterDashboardLeague(null, this)">🌍 All Highlights</button>
+                <button class="dash-pill" onclick="filterDashboardLeague(39, this)">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
+                <button class="dash-pill" onclick="filterDashboardLeague(140, this)">🇪🇸 La Liga</button>
+                <button class="dash-pill" onclick="filterDashboardLeague(2, this)">🏆 Champions League</button>
+                <button class="dash-pill" onclick="filterDashboardLeague(135, this)">🇮🇹 Serie A</button>
+                <button class="dash-pill" onclick="filterDashboardLeague(78, this)">🇩🇪 Bundesliga</button>
+                <button class="dash-pill" onclick="filterDashboardLeague(61, this)">🇫🇷 Ligue 1</button>
+              </div>
+            </div>
+
+            <!-- Personalized Favorites Section (Phase 2) -->
+            <div id="personalizedFavoritesWrap" style="display:none;" class="favorites-feed-wrap">
+              <div class="section-header">
+                <h2 style="color:var(--accent-gold); display:flex; align-items:center; gap:8px;">
+                  <span>⭐</span> My Favorite Clubs' Matches
+                </h2>
+                <span class="fav-count-tag" id="favCountTag">0 Clubs Followed</span>
+              </div>
+              <div id="favoritesLiveList" class="match-grid"></div>
+            </div>
+
+            <div class="quick-overview-wrap">
+              <div class="section-header">
+                <h2>🔥 Live & Recent Matchday Highlights</h2>
+                <button class="view-all-btn" onclick="navigateTo('matches')">View Full Schedule →</button>
+              </div>
+              <div id="dashboardLiveList" class="match-grid">
+                <p style="color:var(--sideline)">Loading matches...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Side Widgets Panel (Right Column) -->
+          <aside class="dashboard-side-col">
+            <!-- Mini Standings Widget -->
+            <div class="dash-widget-card" id="dashMiniStandingsCard">
+              <div class="dash-widget-header">
+                <div class="dash-widget-title">
+                  <span class="dash-widget-icon">🏆</span>
+                  <h3>Live Standings</h3>
+                </div>
+                <select id="dashMiniLeagueSelect" class="dash-mini-select" onchange="loadMiniStandings(this.value)">
+                  <option value="39" selected>Premier League</option>
+                  <option value="140">La Liga</option>
+                  <option value="135">Serie A</option>
+                  <option value="78">Bundesliga</option>
+                  <option value="61">Ligue 1</option>
+                  <option value="2">Champions League</option>
+                </select>
+              </div>
+              <div class="dash-widget-body" id="dashMiniStandingsBody">
+                <p style="color:var(--sideline); font-size:0.85rem;">Loading table…</p>
+              </div>
+              <div class="dash-widget-footer">
+                <button class="dash-widget-link" onclick="navigateTo('standings')">Full League Table →</button>
+              </div>
+            </div>
+
+            <!-- Mini Scorers Widget -->
+            <div class="dash-widget-card" id="dashMiniScorersCard">
+              <div class="dash-widget-header">
+                <div class="dash-widget-title">
+                  <span class="dash-widget-icon">⚽</span>
+                  <h3>Top Goalscorers</h3>
+                </div>
+                <span class="widget-tag">GOLDEN BOOT</span>
+              </div>
+              <div class="dash-widget-body" id="dashMiniScorersBody">
+                <p style="color:var(--sideline); font-size:0.85rem;">Loading leaders…</p>
+              </div>
+              <div class="dash-widget-footer">
+                <button class="dash-widget-link" onclick="navigateTo('leaders')">All Stats & Assists →</button>
+              </div>
+            </div>
+
+            <!-- Community Bots Quick Launcher -->
+            <div class="dash-widget-card" id="dashMiniBotsCard">
+              <div class="dash-widget-header">
+                <div class="dash-widget-title">
+                  <span class="dash-widget-icon">🤖</span>
+                  <h3>GoalHub Assistants</h3>
+                </div>
+              </div>
+              <div class="dash-bots-list">
+                <div class="dash-bot-item wa-bot-item" onclick="openWhatsAppModal()">
+                  <div class="bot-icon">💬</div>
+                  <div class="bot-info">
+                    <h4>WhatsApp Assistant</h4>
+                    <p>Instant live scores on WhatsApp</p>
+                  </div>
+                  <span class="bot-arrow">→</span>
+                </div>
+                <div class="dash-bot-item dc-bot-item" onclick="openDiscordModal()">
+                  <div class="bot-icon">🎮</div>
+                  <div class="bot-info">
+                    <h4>Discord Live Bot</h4>
+                    <p>Live stream feed & slash commands</p>
+                  </div>
+                  <span class="bot-arrow">→</span>
+                </div>
+                <div class="dash-bot-item alerts-bot-item" onclick="openAlertsModal()">
+                  <div class="bot-icon">🔔</div>
+                  <div class="bot-info">
+                    <h4>Team Alerts Hub</h4>
+                    <p>Follow your club & goal alerts</p>
+                  </div>
+                  <span class="bot-arrow">→</span>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
 
 <!-- 2. LIVE MATCHES VIEW (ALAG SECTION) -->
 <main id="viewLive" class="view-section">
@@ -221,6 +437,9 @@
     </div>
   </div>
 </main>
+    </div><!-- /.app-content -->
+  </div><!-- /.app-main -->
+</div><!-- /.app-layout -->
 
 <!-- MATCH CENTER & H2H MODAL -->
 <div id="matchDetailsModal" class="modal-backdrop" onclick="closeMatchModal(event)">

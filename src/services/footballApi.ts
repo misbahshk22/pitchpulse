@@ -2,7 +2,8 @@ import { CONFIG, TRACKED_LEAGUES } from '../config.js';
 import type { 
   Fixture, StandingTeam, MatchEvent, MatchStatus, TeamSquad, SquadPlayer,
   MatchDetails, MatchStatComparison, LineupPlayer, H2HSummary, H2HMeeting,
-  LeagueLeaders, LeagueLeaderPlayer, PlayerProfile, GlobalSearchResult, Team, NewsArticle
+  LeagueLeaders, LeagueLeaderPlayer, PlayerProfile, GlobalSearchResult, Team, NewsArticle,
+  MatchPrediction
 } from '../types.js';
 import { saveFixtures, getFixturesByLeague, getLiveFixturesFromDb, searchFixturesByTeam } from '../db/database.js';
 
@@ -868,6 +869,177 @@ class FootballApiService {
     return [];
   }
 
+  // Statistical European Club Power Ratings (Base strength 50-95)
+  private getClubRating(name: string): number {
+    const clean = (name || '').toLowerCase().trim();
+    const RATINGS: Record<string, number> = {
+      'manchester city': 92, 'man city': 92, 'real madrid': 92, 'bayern munich': 90,
+      'liverpool': 90, 'arsenal': 89, 'barcelona': 88, 'inter milan': 88, 'inter': 88,
+      'paris saint-germain': 87, 'psg': 87, 'bayer leverkusen': 87, 'leverkusen': 87,
+      'atletico madrid': 85, 'chelsea': 84, 'juventus': 84, 'atalanta': 83,
+      'borussia dortmund': 83, 'dortmund': 83, 'sporting cp': 83, 'sporting': 83,
+      'tottenham hotspur': 82, 'spurs': 82, 'ac milan': 82, 'milan': 82,
+      'aston villa': 82, 'newcastle united': 81, 'newcastle': 81, 'brighton': 80,
+      'napoli': 82, 'roma': 81, 'lazio': 80, 'monaco': 80, 'marseille': 80,
+      'athletic club': 80, 'real sociedad': 79, 'villarreal': 79, 'eintracht frankfurt': 79,
+      'rb leipzig': 81, 'leipzig': 81, 'vfb stuttgart': 79, 'stuttgart': 79,
+      'feyenoord': 78, 'psv': 79, 'benfica': 81, 'porto': 80,
+      'west ham united': 78, 'west ham': 78, 'manchester united': 82, 'man utd': 82,
+      'nottingham forest': 77, 'fulham': 77, 'brentford': 77, 'bournemouth': 77,
+      'crystal palace': 76, 'everton': 75, 'wolves': 75, 'leicester city': 75,
+      'ipswich town': 70, 'southampton': 70, 'girona': 79, 'celta vigo': 76,
+      'sevilla': 78, 'real betis': 78, 'mallorca': 75, 'osasuna': 75, 'valencia': 76,
+      'torino': 76, 'fiorentina': 79, 'bologna': 78, 'como': 74, 'parma': 73,
+      'freiburg': 77, 'wolfsburg': 76, 'werder bremen': 75, 'mainz': 74, 'heidenheim': 74,
+      'lille': 79, 'lens': 77, 'nice': 77, 'lyon': 78, 'rennes': 77, 'reims': 75
+    };
+    for (const [k, v] of Object.entries(RATINGS)) {
+      if (clean.includes(k) || k.includes(clean)) return v;
+    }
+    return 74;
+  }
+
+  // Real Match Prediction Engine (Odds + In-Play Game Flow + Club Rating Baseline)
+  public calculatePrediction(f: Partial<Fixture>, rawComp?: any): MatchPrediction {
+    // 1. Try betting odds from ESPN comp if available
+    const odds = rawComp?.odds?.[0] || rawComp?.pickcenter?.[0];
+    if (odds?.homeTeamOdds?.moneyLine !== undefined && odds?.awayTeamOdds?.moneyLine !== undefined) {
+      const hML = parseFloat(odds.homeTeamOdds.moneyLine);
+      const aML = parseFloat(odds.awayTeamOdds.moneyLine);
+      const dML = parseFloat(odds.drawOdds?.moneyLine || '270');
+
+      if (!isNaN(hML) && !isNaN(aML) && !isNaN(dML)) {
+        const toProb = (ml: number) => ml < 0 ? Math.abs(ml) / (Math.abs(ml) + 100) : 100 / (ml + 100);
+        const hProb = toProb(hML);
+        const aProb = toProb(aML);
+        const dProb = toProb(dML);
+        const total = hProb + aProb + dProb;
+        if (total > 0) {
+          const homeWinPct = Math.max(5, Math.min(90, Math.round((hProb / total) * 100)));
+          const awayWinPct = Math.max(5, Math.min(90, Math.round((aProb / total) * 100)));
+          const drawPct = Math.max(5, 100 - homeWinPct - awayWinPct);
+          return { homeWinPct, drawPct, awayWinPct, source: 'odds' };
+        }
+      }
+    }
+
+    // 2. If In-Play Live Match: dynamically calculate based on score & clock
+    if (f.status && f.status !== 'NS' && f.score && f.score.home !== null && f.score.away !== null) {
+      const hScore = f.score.home ?? 0;
+      const aScore = f.score.away ?? 0;
+      const elapsed = Math.max(1, Math.min(90, f.elapsed || 45));
+      const diff = hScore - aScore;
+      const timeRemainingFactor = (90 - elapsed) / 90;
+
+      if (f.status === 'FT' || f.status === 'AET') {
+        if (diff > 0) return { homeWinPct: 100, drawPct: 0, awayWinPct: 0, source: 'live' };
+        if (diff < 0) return { homeWinPct: 0, drawPct: 0, awayWinPct: 100, source: 'live' };
+        return { homeWinPct: 0, drawPct: 100, awayWinPct: 0, source: 'live' };
+      }
+
+      if (diff > 0) {
+        const leadMultiplier = diff >= 2 ? 0.92 : 0.72;
+        const homeWinPct = Math.min(95, Math.round(50 + (leadMultiplier * 45) + ((1 - timeRemainingFactor) * 20)));
+        const drawPct = Math.max(3, Math.round((100 - homeWinPct) * 0.75));
+        const awayWinPct = Math.max(1, 100 - homeWinPct - drawPct);
+        return { homeWinPct, drawPct, awayWinPct, source: 'live' };
+      } else if (diff < 0) {
+        const leadMultiplier = Math.abs(diff) >= 2 ? 0.92 : 0.72;
+        const awayWinPct = Math.min(95, Math.round(50 + (leadMultiplier * 45) + ((1 - timeRemainingFactor) * 20)));
+        const drawPct = Math.max(3, Math.round((100 - awayWinPct) * 0.75));
+        const homeWinPct = Math.max(1, 100 - awayWinPct - drawPct);
+        return { homeWinPct, drawPct, awayWinPct, source: 'live' };
+      } else {
+        const drawPct = Math.min(75, Math.round(30 + ((1 - timeRemainingFactor) * 40)));
+        const rem = 100 - drawPct;
+        const hRating = this.getClubRating(f.homeTeam?.name || '');
+        const aRating = this.getClubRating(f.awayTeam?.name || '');
+        const hShare = (hRating + 4) / (hRating + 4 + aRating);
+        const homeWinPct = Math.round(rem * hShare);
+        const awayWinPct = rem - homeWinPct;
+        return { homeWinPct, drawPct, awayWinPct, source: 'live' };
+      }
+    }
+
+    // 3. Pre-Match Model based on Club Power Ratings + Home Ground Advantage
+    const homeRating = this.getClubRating(f.homeTeam?.name || '') + 6;
+    const awayRating = this.getClubRating(f.awayTeam?.name || '');
+    const ratingDiff = homeRating - awayRating;
+
+    const drawBase = Math.max(18, Math.min(30, 26 - Math.round(Math.abs(ratingDiff) * 0.4)));
+    const winPool = 100 - drawBase;
+
+    const seed = ((f.id || 12345) % 7) - 3; // Deterministic subtle match nuance (-3 to +3%)
+    const expFactor = 1 / (1 + Math.pow(10, -ratingDiff / 28));
+    let homeWinPct = Math.round(winPool * expFactor) + seed;
+    homeWinPct = Math.max(10, Math.min(85, homeWinPct));
+    let drawPct = drawBase;
+    let awayWinPct = 100 - homeWinPct - drawPct;
+
+    if (awayWinPct < 5) {
+      awayWinPct = 5;
+      homeWinPct = 100 - drawPct - awayWinPct;
+    }
+
+    return {
+      homeWinPct,
+      drawPct,
+      awayWinPct,
+      source: 'form'
+    };
+  }
+
+  // Realistic Fallback: Build Projected 11 from official club squad if official matchday teamsheet not yet released
+  public buildProjectedLineup(players: SquadPlayer[]): { starters: LineupPlayer[]; substitutes: LineupPlayer[] } {
+    const starters: LineupPlayer[] = [];
+    const substitutes: LineupPlayer[] = [];
+
+    const gks: LineupPlayer[] = [];
+    const defs: LineupPlayer[] = [];
+    const mids: LineupPlayer[] = [];
+    const fwds: LineupPlayer[] = [];
+
+    for (const p of players) {
+      const lp: LineupPlayer = {
+        id: p.id || Math.random().toString(36).substring(7),
+        name: p.name,
+        jersey: p.jersey || '-',
+        position: p.position || 'Player',
+        starter: false,
+        captain: false
+      };
+      const pos = (p.position || '').toLowerCase();
+      if (pos.includes('goalkeeper') || pos === 'gk' || pos === 'g') {
+        gks.push(lp);
+      } else if (pos.includes('back') || pos.includes('def') || pos === 'cb' || pos === 'lb' || pos === 'rb' || pos === 'd') {
+        defs.push(lp);
+      } else if (pos.includes('mid') || pos === 'cm' || pos === 'cdm' || pos === 'cam' || pos === 'm') {
+        mids.push(lp);
+      } else {
+        fwds.push(lp);
+      }
+    }
+
+    // Pick 1 GK, 4 DEF, 3 MID, 3 FWD
+    if (gks.length > 0) starters.push({ ...gks.shift()!, starter: true });
+    for (let i = 0; i < 4 && defs.length > 0; i++) starters.push({ ...defs.shift()!, starter: true });
+    for (let i = 0; i < 3 && mids.length > 0; i++) starters.push({ ...mids.shift()!, starter: true });
+    for (let i = 0; i < 3 && fwds.length > 0; i++) starters.push({ ...fwds.shift()!, starter: true });
+
+    // Fill up to 11 if needed
+    const remaining = [...defs, ...mids, ...fwds, ...gks];
+    while (starters.length < 11 && remaining.length > 0) {
+      starters.push({ ...remaining.shift()!, starter: true });
+    }
+
+    if (starters.length > 1) {
+      starters[1].captain = true;
+    }
+
+    substitutes.push(...remaining);
+    return { starters, substitutes };
+  }
+
   // Helper to map ESPN events array to our Fixture model
   private mapEspnEventsToFixtures(events: any[], leagueId: number): Fixture[] {
     const league = TRACKED_LEAGUES[leagueId];
@@ -905,7 +1077,7 @@ class FootballApiService {
         }
       }
 
-      fixtures.push({
+      const fixObj: Fixture = {
         id: parseInt(ev.id, 10) || Math.floor(Math.random() * 90000) + 10000,
         leagueId,
         leagueName: league?.name || 'Football',
@@ -933,7 +1105,10 @@ class FootballApiService {
         },
         venue: comp.venue?.fullName ? `${comp.venue.fullName}, ${comp.venue.address?.city || ''}` : undefined,
         events: eventsList
-      });
+      };
+
+      fixObj.prediction = this.calculatePrediction(fixObj, comp);
+      fixtures.push(fixObj);
     }
 
     return fixtures;
@@ -1186,8 +1361,31 @@ class FootballApiService {
         const homeRosterRaw = json.rosters?.find((r: any) => r.homeAway === 'home');
         const awayRosterRaw = json.rosters?.find((r: any) => r.homeAway === 'away');
 
-        const homeLineupMapped = mapRoster(homeRosterRaw?.roster || []);
-        const awayLineupMapped = mapRoster(awayRosterRaw?.roster || []);
+        let homeLineupMapped = mapRoster(homeRosterRaw?.roster || []);
+        let awayLineupMapped = mapRoster(awayRosterRaw?.roster || []);
+
+        const homeConfirmed = homeLineupMapped.starters.length >= 11;
+        const awayConfirmed = awayLineupMapped.starters.length >= 11;
+
+        if (homeLineupMapped.starters.length < 11) {
+          try {
+            const homeSquad = await this.getTeamSquad(fixture.homeTeam.name);
+            if (homeSquad && Array.isArray(homeSquad.players) && homeSquad.players.length >= 11) {
+              homeLineupMapped = this.buildProjectedLineup(homeSquad.players);
+            }
+          } catch {}
+        }
+
+        if (awayLineupMapped.starters.length < 11) {
+          try {
+            const awaySquad = await this.getTeamSquad(fixture.awayTeam.name);
+            if (awaySquad && Array.isArray(awaySquad.players) && awaySquad.players.length >= 11) {
+              awayLineupMapped = this.buildProjectedLineup(awaySquad.players);
+            }
+          } catch {}
+        }
+
+        fixture.prediction = this.calculatePrediction(fixture, comp);
 
         const lineups = {
           home: {
@@ -1195,14 +1393,18 @@ class FootballApiService {
             formation: homeRosterRaw?.formation || '4-3-3',
             coach: getClubInfo(fixture.homeTeam.name).manager,
             starters: homeLineupMapped.starters,
-            substitutes: homeLineupMapped.substitutes
+            substitutes: homeLineupMapped.substitutes,
+            confirmed: homeConfirmed,
+            isProjected: !homeConfirmed
           },
           away: {
             team: fixture.awayTeam,
             formation: awayRosterRaw?.formation || '4-3-3',
             coach: getClubInfo(fixture.awayTeam.name).manager,
             starters: awayLineupMapped.starters,
-            substitutes: awayLineupMapped.substitutes
+            substitutes: awayLineupMapped.substitutes,
+            confirmed: awayConfirmed,
+            isProjected: !awayConfirmed
           }
         };
 
