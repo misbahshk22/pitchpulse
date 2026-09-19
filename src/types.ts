@@ -191,6 +191,7 @@ export interface LeagueLeaders {
   leagueName: string;
   topScorers: LeagueLeaderPlayer[];
   topAssists: LeagueLeaderPlayer[];
+  cleanSheets?: LeagueLeaderPlayer[];
 }
 
 export interface PlayerProfile {
@@ -214,7 +215,22 @@ export interface PlayerProfile {
     assists: number;
     yellowCards?: number;
     redCards?: number;
+    cleanSheets?: number;
+    saves?: number;
+    goalsConceded?: number;
+    savePct?: number;
   };
+}
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  description: string;
+  published: string;
+  image: string;
+  url: string;
+  category: string;
+  byline?: string;
 }
 
 export interface GlobalSearchResult {

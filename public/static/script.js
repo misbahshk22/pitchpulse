@@ -12,6 +12,8 @@ let currentActiveMatchCenterTab = 'stats';
 
 document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
+  initAudio();
+  initPwa();
   await loadLeagues();
   await initDashboard();
   initEventSource();
@@ -38,7 +40,8 @@ function navigateTo(viewName) {
     matches: 'viewMatches',
     squads: 'viewSquads',
     standings: 'viewStandings',
-    leaders: 'viewLeaders'
+    leaders: 'viewLeaders',
+    news: 'viewNews'
   };
 
   document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
@@ -51,6 +54,7 @@ function navigateTo(viewName) {
   else if (viewName === 'squads') loadSquadsSection();
   else if (viewName === 'standings') loadStandingsSection();
   else if (viewName === 'leaders') loadLeadersSection();
+  else if (viewName === 'news') loadNewsSection();
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -714,6 +718,28 @@ function createMatchCard(f) {
 
     ${eventsHtml}
 
+    <!-- Match Predictions (Phase 3) -->
+    <div class="prediction-box" onclick="event.stopPropagation()">
+      <div class="pred-title-row">
+        <span>🎯 Predict Match</span>
+        <span>${getPrediction(f.id) ? '<span style="color:var(--pitch-green); font-weight:700;">Pick: ' + (getPrediction(f.id) === '1' ? 'HOME' : getPrediction(f.id) === 'x' ? 'DRAW' : 'AWAY') + '</span>' : 'Make your call'}</span>
+      </div>
+      <div class="pred-buttons">
+        <button class="pred-btn ${getPrediction(f.id) === '1' ? 'picked' : ''}" onclick="submitPrediction(${f.id}, '1')">
+          <span>🏠 Home</span>
+          <span class="pred-pct">48%</span>
+        </button>
+        <button class="pred-btn ${getPrediction(f.id) === 'x' ? 'picked' : ''}" onclick="submitPrediction(${f.id}, 'x')">
+          <span>🤝 Draw</span>
+          <span class="pred-pct">24%</span>
+        </button>
+        <button class="pred-btn ${getPrediction(f.id) === '2' ? 'picked' : ''}" onclick="submitPrediction(${f.id}, '2')">
+          <span>✈️ Away</span>
+          <span class="pred-pct">28%</span>
+        </button>
+      </div>
+    </div>
+
     <div class="card-footer">
       <span>${f.round || formatKickoffDate(f.kickoff)}</span>
       <span style="color:var(--pitch-green); font-weight:600; font-size:0.75rem;">H2H & Details →</span>
@@ -741,6 +767,7 @@ function initEventSource() {
 
       if (data.type === 'GOAL_ALERT') {
         showToast(`⚽ GOAL! ${data.message}`);
+        playGoalSound();
         if (Notification.permission === 'granted') {
           new Notification('GoalHub Goal Alert', { body: data.message });
         }
@@ -1065,20 +1092,79 @@ function renderMatchCenterTabBody() {
     const homeLineup = activeMatchDetails.lineups?.home;
     const awayLineup = activeMatchDetails.lineups?.away;
 
-    const renderPitchSide = (lineup, sideLabel) => {
+    const renderPitchSide = (lineup, isAway) => {
       if (!lineup || !Array.isArray(lineup.starters) || lineup.starters.length === 0) {
-        return `<p style="color:var(--sideline); padding:12px; font-size:0.85rem;">Lineup not yet announced.</p>`;
+        return `<p style="color:var(--sideline); padding:12px; font-size:0.85rem; text-align:center;">Lineup not yet announced for ${lineup?.team?.name || 'this team'}.</p>`;
       }
+
+      const starters = [...lineup.starters];
+      const formationStr = lineup.formation || '4-3-3';
+      const formLines = formationStr.split(/[-–—]/).map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n) && n > 0);
+
+      const rows = [];
+      // 1. Goalkeeper line (1 player)
+      let gkIndex = starters.findIndex(p => {
+        const pos = (p.position || '').toLowerCase();
+        return pos.includes('goalkeeper') || pos === 'gk' || pos === 'g';
+      });
+      if (gkIndex < 0) gkIndex = 0;
+      const gk = starters.splice(gkIndex, 1)[0];
+      rows.push([gk]);
+
+      // 2. Outfield tactical lines
+      if (formLines.length > 0 && formLines.reduce((a, b) => a + b, 0) <= starters.length + 1) {
+        for (const count of formLines) {
+          if (starters.length === 0) break;
+          rows.push(starters.splice(0, count));
+        }
+        if (starters.length > 0) {
+          rows[rows.length - 1].push(...starters);
+        }
+      } else {
+        const defs = [];
+        const mids = [];
+        const fwds = [];
+        for (const p of starters) {
+          const pos = (p.position || '').toLowerCase();
+          if (pos.includes('back') || pos.includes('def') || pos === 'cb' || pos === 'lb' || pos === 'rb' || pos === 'd') {
+            defs.push(p);
+          } else if (pos.includes('mid') || pos === 'cm' || pos === 'cdm' || pos === 'cam' || pos === 'lm' || pos === 'rm' || pos === 'm') {
+            mids.push(p);
+          } else {
+            fwds.push(p);
+          }
+        }
+        if (defs.length) rows.push(defs);
+        if (mids.length) rows.push(mids);
+        if (fwds.length) rows.push(fwds);
+      }
+
+      // For Away team on bottom half of vertical pitch, invert rows (Attackers near halfway line, GK at bottom)
+      const displayRows = isAway ? rows.slice().reverse() : rows;
+
       return `
-        <div class="pitch-team-title">${lineup.team?.name} (${lineup.formation || 'Starting XI'})</div>
-        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin: 10px 0;">
-          ${lineup.starters.map(p => `
-            <div class="pitch-player-node" onclick="openPlayerProfile('${p.id}')" title="View ${p.name}'s Profile">
-              <div class="pitch-jersey">${p.jersey !== '-' ? p.jersey : '•'}</div>
-              <span class="pitch-player-name">${p.name}</span>
-              <span style="font-size:0.65rem; color:#fef08a;">${p.position}</span>
-            </div>
-          `).join('')}
+        <div style="margin: 6px 0;">
+          <div class="pitch-team-title">${lineup.team?.name} <span style="font-size:0.78rem; opacity:0.85; font-weight:600;">(${formationStr})</span></div>
+          <div style="display:flex; flex-direction:column; gap:14px; margin: 8px 0;">
+            ${displayRows.map(row => `
+              <div class="pitch-tactical-row">
+                ${row.map(p => {
+                  const isGk = (p.position || '').toLowerCase().includes('gk') || (p.position || '').toLowerCase().includes('goalkeeper') || p.id === gk?.id;
+                  const surname = p.name ? p.name.split(' ').slice(-1)[0] : 'Player';
+                  return `
+                    <div class="pitch-player-node" onclick="openPlayerProfile('${p.id}')" title="View ${p.name}'s Profile">
+                      <div class="pitch-jersey ${isGk ? 'gk-jersey' : isAway ? 'away-jersey' : ''}">
+                        ${p.jersey && p.jersey !== '-' ? p.jersey : '•'}
+                        ${p.captain ? '<span class="captain-badge">C</span>' : ''}
+                      </div>
+                      <span class="pitch-player-name">${surname}</span>
+                      <span class="pitch-pos-tag">${p.position || ''}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `).join('')}
+          </div>
         </div>
       `;
     };
@@ -1102,10 +1188,14 @@ function renderMatchCenterTabBody() {
 
     tabContentHtml = `
       <div>
-        <div class="football-pitch">
-          ${renderPitchSide(homeLineup, 'Home')}
-          <div style="height:1px; background:rgba(255,255,255,0.2); margin:12px 0;"></div>
-          ${renderPitchSide(awayLineup, 'Away')}
+        <div class="pitch-tactical-container">
+          ${renderPitchSide(homeLineup, false)}
+          <div class="pitch-half-line">
+            <div class="pitch-center-circle"></div>
+            <div class="pitch-center-spot"></div>
+            <span class="pitch-half-badge">HALFWAY LINE</span>
+          </div>
+          ${renderPitchSide(awayLineup, true)}
         </div>
         <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px;">
           <h4 style="font-size:0.88rem; font-weight:700; color:var(--text-main); margin-bottom:12px;">Bench Substitutes</h4>
@@ -1265,6 +1355,7 @@ function switchLeaderCategory(cat) {
   currentLeaderCategory = cat;
   document.getElementById('btnScorers')?.classList.toggle('active', cat === 'scorers');
   document.getElementById('btnAssists')?.classList.toggle('active', cat === 'assists');
+  document.getElementById('btnCleanSheets')?.classList.toggle('active', cat === 'cleansheets');
   fetchLeagueLeaders(currentLeadersLeagueId);
 }
 
@@ -1272,7 +1363,8 @@ async function fetchLeagueLeaders(leagueId) {
   const container = document.getElementById('leadersTableContainer');
   if (!container) return;
 
-  container.innerHTML = `<p style="color:var(--sideline); padding:24px; text-align:center;">Loading ${currentLeaderCategory === 'scorers' ? 'top scorers' : 'top assists'}…</p>`;
+  const categoryName = currentLeaderCategory === 'scorers' ? 'top scorers' : currentLeaderCategory === 'assists' ? 'top assists' : 'clean sheets (Golden Glove)';
+  container.innerHTML = `<p style="color:var(--sideline); padding:24px; text-align:center;">Loading ${categoryName}…</p>`;
 
   try {
     const res = await fetch(`/api/leagues/${leagueId}/leaders`);
@@ -1282,21 +1374,31 @@ async function fetchLeagueLeaders(leagueId) {
     }
     const data = await res.json();
     const leaders = data.leaders;
-    const playerList = currentLeaderCategory === 'scorers' ? (leaders.topScorers || []) : (leaders.topAssists || []);
+    let playerList = [];
+    let metricTitle = 'Goals';
 
-    if (playerList.length === 0) {
-      container.innerHTML = `<p style="color:var(--sideline); padding:24px; text-align:center;">No player data available.</p>`;
-      return;
+    if (currentLeaderCategory === 'scorers') {
+      playerList = leaders.topScorers || [];
+      metricTitle = 'Goals';
+    } else if (currentLeaderCategory === 'assists') {
+      playerList = leaders.topAssists || [];
+      metricTitle = 'Assists';
+    } else if (currentLeaderCategory === 'cleansheets') {
+      playerList = leaders.cleanSheets || [];
+      metricTitle = 'Clean Sheets';
     }
 
-    const metricTitle = currentLeaderCategory === 'scorers' ? 'Goals' : 'Assists';
+    if (playerList.length === 0) {
+      container.innerHTML = `<p style="color:var(--sideline); padding:24px; text-align:center;">No ${categoryName} data available.</p>`;
+      return;
+    }
 
     container.innerHTML = `
       <table class="leaders-table">
         <thead>
           <tr>
             <th style="width:50px; text-align:center;">Rank</th>
-            <th>Player</th>
+            <th>${currentLeaderCategory === 'cleansheets' ? 'Goalkeeper' : 'Player'}</th>
             <th>Club</th>
             <th style="text-align:center;">Appearances</th>
             <th style="text-align:right;">${metricTitle}</th>
@@ -1408,20 +1510,48 @@ async function openPlayerProfile(playerId) {
         <h4 style="font-size:0.85rem; font-weight:700; color:var(--sideline); text-transform:uppercase; margin-bottom:14px; letter-spacing:0.05em;">
           Season Statistics (${p.stats.season || '2024-25'})
         </h4>
-        <div class="player-stat-cards">
-          <div class="stat-counter-card">
-            <div class="stat-counter-val">${p.stats.goals}</div>
-            <div class="stat-counter-label">Goals</div>
-          </div>
-          <div class="stat-counter-card">
-            <div class="stat-counter-val" style="color:#3b82f6;">${p.stats.assists}</div>
-            <div class="stat-counter-label">Assists</div>
-          </div>
-          <div class="stat-counter-card">
-            <div class="stat-counter-val" style="color:var(--accent-gold);">${p.stats.appearances}</div>
-            <div class="stat-counter-label">Appearances</div>
-          </div>
-        </div>
+        ${(() => {
+          const isKeeper = (p.position || '').toLowerCase().includes('goalkeeper') || (p.position || '').toLowerCase() === 'gk' || (p.position || '').toLowerCase() === 'g';
+          if (isKeeper) {
+            return `
+              <div class="player-stat-cards gk-layout">
+                <div class="stat-counter-card gk-cs">
+                  <div class="stat-counter-val" style="color:#22c55e;">${p.stats.cleanSheets ?? 0}</div>
+                  <div class="stat-counter-label">🧤 Clean Sheets</div>
+                </div>
+                <div class="stat-counter-card gk-sv">
+                  <div class="stat-counter-val" style="color:#38bdf8;">${p.stats.saves ?? 0}</div>
+                  <div class="stat-counter-label">🛡️ Saves</div>
+                </div>
+                <div class="stat-counter-card gk-ga">
+                  <div class="stat-counter-val" style="color:#ef4444;">${p.stats.goalsConceded ?? 0}</div>
+                  <div class="stat-counter-label">🥅 Goals Conceded</div>
+                </div>
+                <div class="stat-counter-card">
+                  <div class="stat-counter-val" style="color:var(--accent-gold); font-size:1.7rem;">${p.stats.appearances ?? 0}</div>
+                  <div class="stat-counter-label">${p.stats.savePct !== undefined ? p.stats.savePct + '% Saves' : 'Appearances'}</div>
+                </div>
+              </div>
+            `;
+          } else {
+            return `
+              <div class="player-stat-cards">
+                <div class="stat-counter-card">
+                  <div class="stat-counter-val">${p.stats.goals}</div>
+                  <div class="stat-counter-label">Goals</div>
+                </div>
+                <div class="stat-counter-card">
+                  <div class="stat-counter-val" style="color:#3b82f6;">${p.stats.assists}</div>
+                  <div class="stat-counter-label">Assists</div>
+                </div>
+                <div class="stat-counter-card">
+                  <div class="stat-counter-val" style="color:var(--accent-gold);">${p.stats.appearances}</div>
+                  <div class="stat-counter-label">Appearances</div>
+                </div>
+              </div>
+            `;
+          }
+        })()}
         
         <div style="display:flex; gap:10px; margin-top:20px;">
           <button class="tab-btn" style="flex:1;" onclick="closePlayerModal(); navigateTo('squads'); lookupClubSquad('${p.team.name}')">
@@ -1770,6 +1900,7 @@ async function triggerTestAlert() {
     });
     const data = await res.json();
     if (data.status === 'success') {
+      playGoalSound();
       showToast('⚽ GOAL! Robert Lewandowski has scored! (Live SSE & Push Broadcasted)');
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('GoalHub Goal Alert', {
@@ -2147,4 +2278,224 @@ function formatDiscordMarkdown(text) {
   out = out.replace(/\*([^*]+)\*/g, '<em>$1</em>');
   out = out.replace(/\n/g, '<br>');
   return out;
+}
+
+// ===================================================
+// 14. Phase 3: Match Predictions Game
+// ===================================================
+function getPredictions() {
+  try {
+    const raw = localStorage.getItem('goalhub_predictions');
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function getPrediction(fixtureId) {
+  const all = getPredictions();
+  return all[fixtureId] || null;
+}
+
+function submitPrediction(fixtureId, pick) {
+  const all = getPredictions();
+  all[fixtureId] = pick;
+  localStorage.setItem('goalhub_predictions', JSON.stringify(all));
+
+  // Update card UI if present
+  const card = document.getElementById(`fixture-${fixtureId}`);
+  if (card) {
+    const btns = card.querySelectorAll('.pred-btn');
+    btns.forEach(b => b.classList.remove('picked'));
+    const targetIdx = pick === '1' ? 0 : pick === 'x' ? 1 : 2;
+    if (btns[targetIdx]) btns[targetIdx].classList.add('picked');
+
+    const titleSpan = card.querySelector('.pred-title-row span:last-child');
+    if (titleSpan) {
+      const label = pick === '1' ? 'HOME' : pick === 'x' ? 'DRAW' : 'AWAY';
+      titleSpan.innerHTML = `<span style="color:var(--pitch-green); font-weight:700;">Pick: ${label}</span>`;
+    }
+  }
+
+  const pickLabel = pick === '1' ? 'Home Win' : pick === 'x' ? 'Draw' : 'Away Win';
+  showToast(`🎯 Prediction locked in: ${pickLabel}! (+3 pts on match completion)`);
+  if (audioEnabled) playGoalSound();
+}
+
+// ===================================================
+// 15. Phase 3: European Football News Feed
+// ===================================================
+let allNewsArticles = [];
+let currentNewsCategory = 'all';
+
+async function loadNewsSection() {
+  const container = document.getElementById('newsContainer');
+  if (!container) return;
+  container.innerHTML = `<p style="color:var(--sideline); padding:30px; text-align:center;">Loading latest European football stories...</p>`;
+
+  try {
+    const res = await fetch('/api/news');
+    if (!res.ok) throw new Error('Failed to load news');
+    const data = await res.json();
+    allNewsArticles = data.articles || [];
+    renderNewsCards();
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--sideline); padding:30px; text-align:center;">Failed to load news stories. Please refresh.</p>`;
+  }
+}
+
+function filterNewsCategory(cat, btn) {
+  currentNewsCategory = cat;
+  if (btn && btn.parentElement) {
+    btn.parentElement.querySelectorAll('.toggle-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  renderNewsCards();
+}
+
+function renderNewsCards() {
+  const container = document.getElementById('newsContainer');
+  if (!container) return;
+
+  const filtered = currentNewsCategory === 'all'
+    ? allNewsArticles
+    : allNewsArticles.filter(a => 
+        (a.category || '').toLowerCase().includes(currentNewsCategory.toLowerCase()) || 
+        (a.title || '').toLowerCase().includes(currentNewsCategory.toLowerCase())
+      );
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<p style="color:var(--sideline); padding:30px; text-align:center;">No stories found in this category.</p>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(a => {
+    const timeAgo = formatTimeAgo(a.published);
+    return `
+      <a href="${a.url}" target="_blank" rel="noopener noreferrer" class="news-card">
+        <div class="news-img-wrap">
+          <img class="news-img" src="${a.image}" alt="${escapeHtml(a.title)}" onerror="this.src='https://a.espncdn.com/photo/2024/0815/r1372776_1296x729_16-9.jpg'">
+          <span class="news-tag">${escapeHtml(a.category)}</span>
+        </div>
+        <div class="news-body">
+          <h3 class="news-title">${escapeHtml(a.title)}</h3>
+          <p class="news-desc">${escapeHtml(a.description)}</p>
+          <div class="news-meta">
+            <span>✍️ ${escapeHtml(a.byline || 'ESPN')}</span>
+            <span>🕒 ${timeAgo}</span>
+          </div>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+function formatTimeAgo(isoString) {
+  if (!isoString) return 'Recent';
+  const diff = Date.now() - new Date(isoString).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
+// ===================================================
+// 16. Phase 4: PWA Registration & Install
+// ===================================================
+let deferredInstallPrompt = null;
+
+function initPwa() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.warn('[PWA] SW registration failed:', err);
+    });
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    const btn = document.getElementById('installPwaBtn');
+    if (btn) btn.style.display = 'inline-block';
+  });
+}
+
+function installGoalHubPwa() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then((choiceResult) => {
+    if (choiceResult.outcome === 'accepted') {
+      showToast('Thank you for installing GoalHub! ⚽');
+    }
+    deferredInstallPrompt = null;
+    const btn = document.getElementById('installPwaBtn');
+    if (btn) btn.style.display = 'none';
+  });
+}
+
+// ===================================================
+// 17. Phase 5: Web Audio Goal Sound Synthesizer
+// ===================================================
+let audioEnabled = localStorage.getItem('goalhub_audio') !== 'false';
+let audioCtx = null;
+
+function initAudio() {
+  const btn = document.getElementById('soundToggleBtn');
+  if (btn) {
+    btn.innerHTML = audioEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+    btn.classList.toggle('muted', !audioEnabled);
+  }
+}
+
+function toggleAudio() {
+  audioEnabled = !audioEnabled;
+  localStorage.setItem('goalhub_audio', audioEnabled ? 'true' : 'false');
+  initAudio();
+  if (audioEnabled) {
+    playGoalSound();
+    showToast('Goal audio alerts enabled! 🔔');
+  } else {
+    showToast('Goal audio alerts muted. 🔕');
+  }
+}
+
+function playGoalSound() {
+  if (!audioEnabled) return;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    if (!audioCtx) audioCtx = new AudioContextClass();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const now = audioCtx.currentTime;
+
+    // Upbeat live goal chime tone 1 (523.25 Hz - C5)
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(523.25, now);
+    osc1.frequency.exponentialRampToValueAtTime(659.25, now + 0.15); // E5
+    gain1.gain.setValueAtTime(0.2, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.35);
+
+    // Chime tone 2 (783.99 Hz - G5 -> 1046.5 Hz - C6)
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(783.99, now + 0.15);
+    osc2.frequency.exponentialRampToValueAtTime(1046.5, now + 0.4);
+    gain2.gain.setValueAtTime(0.25, now + 0.15);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.start(now + 0.15);
+    osc2.stop(now + 0.55);
+  } catch (e) {
+    console.warn('Audio playback error:', e);
+  }
 }

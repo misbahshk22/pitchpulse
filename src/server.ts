@@ -23,11 +23,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static assets from both projectRoot and cwd
-app.use('/static', express.static(path.join(projectRoot, 'static')));
+// Serve static assets from public first, then fallback to root
 app.use('/static', express.static(path.join(projectRoot, 'public', 'static')));
-app.use('/static', express.static(path.join(process.cwd(), 'static')));
 app.use('/static', express.static(path.join(process.cwd(), 'public', 'static')));
+app.use('/static', express.static(path.join(projectRoot, 'static')));
+app.use('/static', express.static(path.join(process.cwd(), 'static')));
 app.use(express.static(path.join(projectRoot, 'public')));
 app.use(express.static(path.join(process.cwd(), 'public')));
 
@@ -257,6 +257,16 @@ app.get('/api/player-photo', async (req, res) => {
     res.json({ status: 'success', photo });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Failed to resolve photo' });
+  }
+});
+
+// 6h. European Soccer News Feed (Phase 3)
+app.get('/api/news', async (_req, res) => {
+  try {
+    const articles = await footballApi.getEuropeanNews();
+    res.json({ status: 'success', count: articles.length, articles });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Failed to fetch news feed' });
   }
 });
 

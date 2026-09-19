@@ -2,7 +2,7 @@ import { CONFIG, TRACKED_LEAGUES } from '../config.js';
 import type { 
   Fixture, StandingTeam, MatchEvent, MatchStatus, TeamSquad, SquadPlayer,
   MatchDetails, MatchStatComparison, LineupPlayer, H2HSummary, H2HMeeting,
-  LeagueLeaders, LeagueLeaderPlayer, PlayerProfile, GlobalSearchResult, Team
+  LeagueLeaders, LeagueLeaderPlayer, PlayerProfile, GlobalSearchResult, Team, NewsArticle
 } from '../types.js';
 import { saveFixtures, getFixturesByLeague, getLiveFixturesFromDb, searchFixturesByTeam } from '../db/database.js';
 
@@ -77,15 +77,15 @@ export const CLUB_MANAGERS: Record<string, { manager: string; stadium: string }>
   'everton': { manager: 'Sean Dyche', stadium: 'Goodison Park' },
   'fulham': { manager: 'Marco Silva', stadium: 'Craven Cottage' },
   'ipswich': { manager: 'Kieran McKenna', stadium: 'Portman Road' },
-  'leicester': { manager: 'Steve Cooper', stadium: 'King Power Stadium' },
+  'leicester': { manager: 'Ruud van Nistelrooy', stadium: 'King Power Stadium' },
   'liverpool': { manager: 'Arne Slot', stadium: 'Anfield' },
   'manchester city': { manager: 'Pep Guardiola', stadium: 'Etihad Stadium' },
   'manchester united': { manager: 'Rúben Amorim', stadium: 'Old Trafford' },
   'newcastle': { manager: 'Eddie Howe', stadium: "St. James' Park" },
   'nottingham forest': { manager: 'Nuno Espírito Santo', stadium: 'City Ground' },
-  'southampton': { manager: 'Russell Martin', stadium: "St. Mary's Stadium" },
+  'southampton': { manager: 'Ivan Jurić', stadium: "St. Mary's Stadium" },
   'tottenham': { manager: 'Ange Postecoglou', stadium: 'Tottenham Hotspur Stadium' },
-  'west ham': { manager: 'Julen Lopetegui', stadium: 'London Stadium' },
+  'west ham': { manager: 'Graham Potter', stadium: 'London Stadium' },
   'wolverhampton': { manager: 'Gary O\'Neil', stadium: 'Molineux Stadium' },
 
   // La Liga
@@ -107,7 +107,7 @@ export const CLUB_MANAGERS: Record<string, { manager: string; stadium: string }>
   'las palmas': { manager: 'Diego Martínez', stadium: 'Estadio Gran Canaria' },
   'rayo vallecano': { manager: 'Iñigo Pérez', stadium: 'Campo de Vallecas' },
   'espanyol': { manager: 'Manolo González', stadium: 'Stage Front Stadium' },
-  'alaves': { manager: 'Luis García Plaza', stadium: 'Mendizorrotza' },
+  'alaves': { manager: 'Eduardo Coudet', stadium: 'Mendizorrotza' },
   'leganes': { manager: 'Borja Jiménez', stadium: 'Estadio Municipal Butarque' },
   'valladolid': { manager: 'Paulo Pezzolano', stadium: 'José Zorrilla' },
 
@@ -128,6 +128,8 @@ export const CLUB_MANAGERS: Record<string, { manager: string; stadium: string }>
   'mainz': { manager: 'Bo Henriksen', stadium: 'Mewa Arena' },
   'heidenheim': { manager: 'Frank Schmidt', stadium: 'Voith-Arena' },
   'st pauli': { manager: 'Alexander Blessin', stadium: 'Millerntor-Stadion' },
+  'bochum': { manager: 'Dieter Hecking', stadium: 'Vonovia Ruhrstadion' },
+  'holstein kiel': { manager: 'Marcel Rapp', stadium: 'Holstein-Stadion' },
 
   // Serie A
   'inter': { manager: 'Simone Inzaghi', stadium: 'San Siro' },
@@ -150,7 +152,9 @@ export const CLUB_MANAGERS: Record<string, { manager: string; stadium: string }>
   'cagliari': { manager: 'Davide Nicola', stadium: 'Unipol Domus' },
   'empoli': { manager: 'Roberto D\'Aversa', stadium: 'Carlo Castellani' },
   'verona': { manager: 'Paolo Zanetti', stadium: 'Marcantonio Bentegodi' },
-  'monza': { manager: 'Alessandro Nesta', stadium: 'U-Power Stadium' },
+  'monza': { manager: 'Salvatore Bocchetti', stadium: 'U-Power Stadium' },
+  'lecce': { manager: 'Marco Giampaolo', stadium: 'Stadio Via del mare' },
+  'venezia': { manager: 'Eusebio Di Francesco', stadium: 'Stadio Pier Luigi Penzo' },
 
   // Ligue 1
   'paris saint-germain': { manager: 'Luis Enrique', stadium: 'Parc des Princes' },
@@ -164,6 +168,14 @@ export const CLUB_MANAGERS: Record<string, { manager: string; stadium: string }>
   'rennes': { manager: 'Jorge Sampaoli', stadium: 'Roazhon Park' },
   'strasbourg': { manager: 'Liam Rosenior', stadium: 'Stade de la Meinau' },
   'brest': { manager: 'Éric Roy', stadium: 'Stade Francis-Le Blé' },
+  'reims': { manager: 'Luka Elsner', stadium: 'Stade Auguste-Delaune' },
+  'auxerre': { manager: 'Christophe Pélissier', stadium: 'Stade de l\'Abbé-Deschamps' },
+  'toulouse': { manager: 'Carles Martínez Novell', stadium: 'Stadium de Toulouse' },
+  'montpellier': { manager: 'Jean-Louis Gasset', stadium: 'Stade de la Mosson' },
+  'nantes': { manager: 'Antoine Kombouaré', stadium: 'Stade de la Beaujoire' },
+  'angers': { manager: 'Alexandre Dujeux', stadium: 'Stade Raymond Kopa' },
+  'saint-etienne': { manager: 'Olivier Dall\'Oglio', stadium: 'Stade Geoffroy-Guichard' },
+  'le havre': { manager: 'Didier Digard', stadium: 'Stade Océane' },
 
   // European Giants
   'sporting cp': { manager: 'João Pereira', stadium: 'Estádio José Alvalade' },
@@ -173,7 +185,12 @@ export const CLUB_MANAGERS: Record<string, { manager: string; stadium: string }>
   'feyenoord': { manager: 'Brian Priske', stadium: 'De Kuip' },
   'psv': { manager: 'Peter Bosz', stadium: 'Philips Stadion' },
   'celtic': { manager: 'Brendan Rodgers', stadium: 'Celtic Park' },
-  'rangers': { manager: 'Philippe Clement', stadium: 'Ibrox Stadium' }
+  'rangers': { manager: 'Philippe Clement', stadium: 'Ibrox Stadium' },
+  'galatasaray': { manager: 'Okan Buruk', stadium: 'RAMS Park' },
+  'fenerbahce': { manager: 'José Mourinho', stadium: 'Şükrü Saracoğlu Stadium' },
+  'besiktas': { manager: 'Serdar Topraktepe', stadium: 'Tüpraş Stadium' },
+  'club brugge': { manager: 'Nicky Hayen', stadium: 'Jan Breydel Stadium' },
+  'shakhtar donetsk': { manager: 'Marino Pušić', stadium: 'Donbass Arena' }
 };
 
 export function getClubInfo(teamName: string): { manager: string; stadium: string } {
@@ -1080,7 +1097,7 @@ class FootballApiService {
     return summary;
   }
 
-  // 9. League Leaders (Top Scorers & Assists per League)
+  // 9. League Leaders (Top Scorers, Assists & Golden Glove Clean Sheets per League)
   public async getLeagueLeaders(leagueId: number): Promise<LeagueLeaders | null> {
     const cacheKey = `leaders:${leagueId}`;
     const cached = this.getCached<LeagueLeaders>(cacheKey);
@@ -1129,7 +1146,106 @@ class FootballApiService {
       const topScorers = parseCategory('goalsLeaders');
       const topAssists = parseCategory('assistsLeaders');
 
-      // Asynchronously enrich top scorers & assists with high-res portrait faces
+      // Top Goalkeepers / Golden Glove clean sheets registry for tracked leagues
+      const LEAGUE_GKS: Record<number, Array<{ id: string; name: string; team: string; teamId: number }>> = {
+        39: [ // Premier League
+          { id: '196176', name: 'David Raya', team: 'Arsenal', teamId: 359 },
+          { id: '196876', name: 'Alisson Becker', team: 'Liverpool', teamId: 364 },
+          { id: '204664', name: 'Ederson', team: 'Manchester City', teamId: 382 },
+          { id: '238356', name: 'Robert Sánchez', team: 'Chelsea', teamId: 363 },
+          { id: '204082', name: 'Guglielmo Vicario', team: 'Tottenham Hotspur', teamId: 367 },
+          { id: '214251', name: 'André Onana', team: 'Manchester United', teamId: 360 },
+          { id: '160416', name: 'Emiliano Martínez', team: 'Aston Villa', teamId: 362 },
+          { id: '175908', name: 'Nick Pope', team: 'Newcastle United', teamId: 361 },
+          { id: '175936', name: 'Matz Sels', team: 'Nottingham Forest', teamId: 393 },
+          { id: '175883', name: 'Jordan Pickford', team: 'Everton', teamId: 368 },
+          { id: '270765', name: 'Bart Verbruggen', team: 'Brighton & Hove Albion', teamId: 331 }
+        ],
+        140: [ // La Liga
+          { id: '149622', name: 'Jan Oblak', team: 'Atlético Madrid', teamId: 1068 },
+          { id: '134283', name: 'Thibaut Courtois', team: 'Real Madrid', teamId: 86 },
+          { id: '131634', name: 'Wojciech Szczesny', team: 'Barcelona', teamId: 83 },
+          { id: '257237', name: 'Andriy Lunin', team: 'Real Madrid', teamId: 86 },
+          { id: '187946', name: 'Dominik Livakovic', team: 'Barcelona', teamId: 83 },
+          { id: '177927', name: 'Juan Musso', team: 'Atlético Madrid', teamId: 1068 }
+        ],
+        78: [ // Bundesliga
+          { id: '84774', name: 'Manuel Neuer', team: 'Bayern Munich', teamId: 132 },
+          { id: '161825', name: 'Janis Blaswich', team: 'Bayer Leverkusen', teamId: 131 },
+          { id: '228965', name: 'Gregor Kobel', team: 'Borussia Dortmund', teamId: 124 },
+          { id: '113733', name: 'Sven Ulreich', team: 'Bayern Munich', teamId: 132 }
+        ],
+        135: [ // Serie A
+          { id: '181836', name: 'Ivan Provedel', team: 'Lazio', teamId: 112 },
+          { id: '240533', name: 'Josep Martínez', team: 'Inter Milan', teamId: 110 },
+          { id: '204082', name: 'Guglielmo Vicario', team: 'Juventus', teamId: 111 },
+          { id: '259474', name: 'Kamil Grabara', team: 'Juventus', teamId: 111 }
+        ],
+        61: [ // Ligue 1
+          { id: '248699', name: 'Matvei Safonov', team: 'Paris Saint-Germain', teamId: 160 },
+          { id: '288925', name: 'Lucas Chevalier', team: 'Lille', teamId: 165 }
+        ],
+        2: [ // Champions League
+          { id: '149622', name: 'Jan Oblak', team: 'Atlético Madrid', teamId: 1068 },
+          { id: '196176', name: 'David Raya', team: 'Arsenal', teamId: 359 },
+          { id: '196876', name: 'Alisson Becker', team: 'Liverpool', teamId: 364 },
+          { id: '84774', name: 'Manuel Neuer', team: 'Bayern Munich', teamId: 132 },
+          { id: '134283', name: 'Thibaut Courtois', team: 'Real Madrid', teamId: 86 },
+          { id: '204664', name: 'Ederson', team: 'Manchester City', teamId: 382 }
+        ]
+      };
+
+      const gkCandidates = LEAGUE_GKS[leagueId] || LEAGUE_GKS[39];
+      const cleanSheetsRaw = await Promise.allSettled(
+        gkCandidates.map(async (gk) => {
+          try {
+            const r = await fetch(`https://site.web.api.espn.com/apis/common/v3/sports/soccer/athletes/${gk.id}`);
+            if (!r.ok) return null;
+            const d = await r.json();
+            const stats = d.athlete?.statsSummary?.statistics || [];
+            const cs = stats.find((s: any) => s.name === 'cleanSheet')?.value ?? 0;
+            const sv = stats.find((s: any) => s.name === 'saves')?.value ?? 0;
+            const ga = stats.find((s: any) => s.name === 'goalsConceded')?.value ?? 0;
+            const appsItem = stats.find((s: any) => s.name === 'starts-subIns');
+            let apps = 0;
+            if (appsItem) {
+              if (typeof appsItem.value === 'number') apps = appsItem.value;
+              else if (appsItem.displayValue) {
+                const m = appsItem.displayValue.match(/(\d+)/);
+                if (m) apps = parseInt(m[1], 10);
+              }
+            }
+            return {
+              id: gk.id,
+              name: d.athlete?.displayName || gk.name,
+              shortName: d.athlete?.shortName || gk.name,
+              jersey: d.athlete?.jersey || '1',
+              team: {
+                id: gk.teamId,
+                name: gk.team,
+                logo: `https://a.espncdn.com/i/teamlogos/soccer/500/${gk.teamId}.png`
+              },
+              appearances: apps,
+              value: cs,
+              displayValue: `${cs} clean sheets (${sv} saves)`
+            };
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      const validGks = cleanSheetsRaw
+        .map(r => r.status === 'fulfilled' ? r.value : null)
+        .filter((g): g is NonNullable<typeof g> => g !== null)
+        .sort((a, b) => b.value - a.value || b.appearances - a.appearances);
+
+      const cleanSheetsRanked: LeagueLeaderPlayer[] = validGks.map((g, idx) => ({
+        ...g,
+        rank: idx + 1
+      }));
+
+      // Asynchronously enrich leaders with high-res portrait faces
       const enrichWithPhotos = async (list: LeagueLeaderPlayer[]) => {
         return Promise.all(
           list.map(async (p) => {
@@ -1139,16 +1255,18 @@ class FootballApiService {
         );
       };
 
-      const [topScorersWithPhotos, topAssistsWithPhotos] = await Promise.all([
+      const [topScorersWithPhotos, topAssistsWithPhotos, cleanSheetsWithPhotos] = await Promise.all([
         enrichWithPhotos(topScorers),
-        enrichWithPhotos(topAssists)
+        enrichWithPhotos(topAssists),
+        enrichWithPhotos(cleanSheetsRanked)
       ]);
 
       const result: LeagueLeaders = {
         leagueId,
         leagueName: league.name,
         topScorers: topScorersWithPhotos,
-        topAssists: topAssistsWithPhotos
+        topAssists: topAssistsWithPhotos,
+        cleanSheets: cleanSheetsWithPhotos
       };
 
       this.setCache(cacheKey, result, 1800);
@@ -1159,7 +1277,7 @@ class FootballApiService {
     }
   }
 
-  // 10. Player Profile (Photo, Club, Position, Age, Season Stats)
+  // 10. Player Profile (Photo, Club, Position, Age, Season Stats & Goalkeeper Clean Sheets)
   public async getPlayerProfile(playerId: string | number): Promise<PlayerProfile | null> {
     const cacheKey = `player:${playerId}`;
     const cached = this.getCached<PlayerProfile>(cacheKey);
@@ -1206,6 +1324,10 @@ class FootballApiService {
       const assists = getStat(['goalAssists', 'assists']);
       const yellowCards = getStat(['yellowCards', 'yellow']);
       const redCards = getStat(['redCards', 'red']);
+      const cleanSheets = getStat(['cleanSheet', 'cleansheets', 'cleanSheets']);
+      const saves = getStat(['saves', 'save']);
+      const goalsConceded = getStat(['goalsConceded', 'goalsAgainst']);
+      const savePct = (saves + goalsConceded > 0) ? Math.round((saves / (saves + goalsConceded)) * 100) : undefined;
 
       const playerName = ath.displayName || ath.fullName || 'Player';
       const playerPhoto = await this.getPlayerPhoto(playerName, String(ath.id));
@@ -1216,7 +1338,7 @@ class FootballApiService {
         fullName: ath.fullName,
         jersey: ath.jersey,
         photo: playerPhoto,
-        position: ath.position?.displayName || ath.position?.name || 'Forward',
+        position: ath.position?.displayName || ath.position?.name || 'Player',
         team: {
           id: parseInt(team.id, 10) || 0,
           name: team.displayName || team.name || 'Club',
@@ -1234,7 +1356,11 @@ class FootballApiService {
           goals,
           assists,
           yellowCards,
-          redCards
+          redCards,
+          cleanSheets,
+          saves,
+          goalsConceded,
+          savePct
         }
       };
 
@@ -1243,6 +1369,60 @@ class FootballApiService {
     } catch (err) {
       console.warn(`[FootballAPI] Failed to fetch player profile for ${playerId}:`, err);
       return null;
+    }
+  }
+
+  // 12. European Soccer News Feed (Phase 3)
+  public async getEuropeanNews(): Promise<NewsArticle[]> {
+    const cacheKey = 'news:european';
+    const cached = this.getCached<NewsArticle[]>(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const endpoints = [
+        'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/news',
+        'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news',
+        'https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/news'
+      ];
+
+      const responses = await Promise.allSettled(
+        endpoints.map(url => fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }).then(r => r.json()))
+      );
+
+      const articles: NewsArticle[] = [];
+      const seenTitles = new Set<string>();
+
+      for (const res of responses) {
+        if (res.status !== 'fulfilled' || !Array.isArray(res.value?.articles)) continue;
+        for (const a of res.value.articles) {
+          if (!a.headline || seenTitles.has(a.headline)) continue;
+          seenTitles.add(a.headline);
+
+          const img = a.images?.[0]?.url || 'https://a.espncdn.com/photo/2024/0815/r1372776_1296x729_16-9.jpg';
+          const cat = a.categories?.[1]?.description || a.categories?.[0]?.description || 'European Football';
+
+          articles.push({
+            id: String(a.id || Math.random().toString(36).substring(7)),
+            title: a.headline,
+            description: a.description || '',
+            published: a.published || new Date().toISOString(),
+            image: img,
+            url: a.links?.web?.href || 'https://www.espn.com/soccer/',
+            category: cat,
+            byline: a.byline || 'ESPN Soccer'
+          });
+        }
+      }
+
+      // Sort newest first
+      articles.sort((a, b) => new Date(b.published).getTime() - new Date(a.published).getTime());
+
+      const topArticles = articles.slice(0, 30);
+      this.setCache(cacheKey, topArticles, 600); // 10m cache
+      return topArticles;
+    } catch (err) {
+      console.warn('[FootballAPI] Failed to fetch European news:', err);
+      return [];
     }
   }
 

@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GoalHub — European Football Tracker</title>
+<meta name="theme-color" content="#10281b">
+<meta name="description" content="GoalHub — Real-time European Football Hub. Premier League, La Liga, Serie A, Bundesliga, Ligue 1, and UEFA Competitions.">
+<meta property="og:title" content="GoalHub — Real-Time European Football Hub">
+<meta property="og:description" content="Live scores, tactical team formations, official squads, manager info, clean sheets, and standings.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://ui-avatars.com/api/?name=GoalHub&background=10281b&color=00ff87&size=512&bold=true">
+<link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -21,9 +28,14 @@
       <button class="nav-btn" data-view="matches" onclick="navigateTo('matches')">📅 Matches & Schedules</button>
       <button class="nav-btn" data-view="squads" onclick="navigateTo('squads')">👥 Squads</button>
       <button class="nav-btn" data-view="standings" onclick="navigateTo('standings')">🏆 Standings</button>
+      <button class="nav-btn" data-view="leaders" onclick="navigateTo('leaders')">📊 Stats & Leaders</button>
+      <button class="nav-btn" data-view="news" onclick="navigateTo('news')">📰 News</button>
       <button class="nav-btn alerts-nav-highlight" data-view="alerts" onclick="openAlertsModal()">🔔 Alerts</button>
       <button class="nav-btn" onclick="openWhatsAppModal()" style="background:#25d366; color:#000; font-weight:700; border-color:#25d366; box-shadow:0 0 12px rgba(37,211,102,0.3);">💬 WhatsApp</button>
-      <button class="nav-btn" onclick="openDiscordModal()" style="background:#5865f2; color:#fff; font-weight:700; border-color:#5865f2; box-shadow:0 0 12px rgba(88,101,242,0.35);">🎮 Discord Bot</button>
+      <button class="nav-btn" onclick="openDiscordModal()" style="background:#5865f2; color:#fff; font-weight:700; border-color:#5865f2; box-shadow:0 0 12px rgba(88,101,242,0.35);">🎮 Discord</button>
+      <button class="sound-toggle-btn" id="soundToggleBtn" onclick="toggleAudio()" title="Toggle Live Goal Sound Alert">🔊 Sound</button>
+      <button class="install-pwa-btn" id="installPwaBtn" onclick="installGoalHubPwa()" style="display:none;" title="Install GoalHub App">📲 Install</button>
+      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
     </nav>
   </div>
 </header>
@@ -44,12 +56,27 @@
     </div>
   </div>
 
-  <div class="ask-wrap">
-    <form id="askForm" class="ask-box">
-      <input id="askInput" type="text" placeholder="Ask e.g. &quot;next arsenal match&quot;, &quot;fc barcelona squad&quot;, or &quot;who is playing live&quot;" autocomplete="off">
-      <button type="submit">Ask</button>
-    </form>
+  <div class="global-search-wrap">
+    <div class="global-search-bar-wrap">
+      <div class="search-input-box">
+        <span class="search-icon">🔍</span>
+        <input id="globalSearchInput" type="text" placeholder="Search clubs, players (e.g. Haaland, Yamal), or matches..." autocomplete="off">
+        <button id="globalSearchClear" onclick="clearGlobalSearch()" style="display:none;" class="search-clear-btn">✕</button>
+      </div>
+      <div id="globalSearchDropdown" class="search-dropdown" style="display:none;"></div>
+    </div>
     <div id="askAnswer"></div>
+  </div>
+
+  <!-- Personalized Favorites Section (Phase 2) -->
+  <div id="personalizedFavoritesWrap" style="display:none;" class="favorites-feed-wrap">
+    <div class="section-header">
+      <h2 style="color:var(--accent-gold); display:flex; align-items:center; gap:8px;">
+        <span>⭐</span> My Favorite Clubs' Matches
+      </h2>
+      <span class="fav-count-tag" id="favCountTag">0 Clubs Followed</span>
+    </div>
+    <div id="favoritesLiveList" class="match-grid"></div>
   </div>
 
   <div class="quick-overview-wrap">
@@ -135,12 +162,84 @@
   </div>
 </main>
 
-<!-- HEAD-TO-HEAD & MATCH DETAILS MODAL -->
+<!-- 6. TOP SCORERS & ASSISTS VIEW -->
+<main id="viewLeaders" class="view-section">
+  <div class="page-header">
+    <div class="page-title-wrap">
+      <span class="live-pill">🏆 GOLDEN BOOT & PLAYMAKERS</span>
+      <h2>Top Scorers & Assists</h2>
+    </div>
+    <p class="page-sub">Official goalscoring and playmaking leaders across Premier League, La Liga, Champions League & European leagues.</p>
+  </div>
+  
+  <div class="tabs" id="leadersLeagueTabs"></div>
+
+  <div class="leaders-filter-row">
+    <div class="toggle-group">
+      <button class="toggle-pill active" id="btnScorers" onclick="switchLeaderCategory('scorers')">⚽ Top Scorers</button>
+      <button class="toggle-pill" id="btnAssists" onclick="switchLeaderCategory('assists')">🎯 Top Assists</button>
+      <button class="toggle-pill" id="btnCleanSheets" onclick="switchLeaderCategory('cleansheets')">🧤 Clean Sheets (Golden Glove)</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="leaders-table-wrap" id="leadersTableContainer">
+      <p style="color:var(--sideline)">Loading leaders…</p>
+    </div>
+  </div>
+</main>
+
+<!-- 7. EUROPEAN FOOTBALL NEWS VIEW (PHASE 3) -->
+<main id="viewNews" class="view-section">
+  <div class="page-header">
+    <div class="page-title-wrap">
+      <span class="live-pill">📰 BREAKING STORIES & ANALYSIS</span>
+      <h2>European Football News</h2>
+    </div>
+    <p class="page-sub">Latest transfer updates, tactical insights, and breaking headlines across European football.</p>
+  </div>
+  
+  <div class="news-filter-row">
+    <div class="toggle-group" id="newsCategoryFilter">
+      <button class="toggle-pill active" onclick="filterNewsCategory('all', this)">🌍 All Stories</button>
+      <button class="toggle-pill" onclick="filterNewsCategory('Premier League', this)">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</button>
+      <button class="toggle-pill" onclick="filterNewsCategory('Champions League', this)">🏆 Champions League</button>
+      <button class="toggle-pill" onclick="filterNewsCategory('La Liga', this)">🇪🇸 La Liga</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="news-grid" id="newsContainer">
+      <p style="color:var(--sideline); padding:30px; text-align:center;">Loading latest European football stories...</p>
+    </div>
+  </div>
+</main>
+
+<!-- MATCH CENTER & H2H MODAL -->
 <div id="matchDetailsModal" class="modal-backdrop" onclick="closeMatchModal(event)">
   <div class="modal-card match-modal-content" onclick="event.stopPropagation()">
     <button class="modal-close-btn" onclick="closeMatchModal()">×</button>
+    
+    <!-- Sub-navigation tabs inside Match Center -->
+    <div class="mc-tabs">
+      <button class="mc-tab-btn active" data-mctab="stats" onclick="switchMatchCenterTab('stats')">📊 Match Stats</button>
+      <button class="mc-tab-btn" data-mctab="lineups" onclick="switchMatchCenterTab('lineups')">👥 Lineups & Formations</button>
+      <button class="mc-tab-btn" data-mctab="timeline" onclick="switchMatchCenterTab('timeline')">⏱️ Timeline</button>
+      <button class="mc-tab-btn" data-mctab="h2h" onclick="switchMatchCenterTab('h2h')">⚔️ H2H History (Last 10)</button>
+    </div>
+
     <div id="matchModalBody">
       <p style="color:var(--sideline)">Loading match insights...</p>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER PROFILE MODAL -->
+<div id="playerProfileModal" class="modal-backdrop" onclick="closePlayerModal(event)">
+  <div class="modal-card player-modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close-btn" onclick="closePlayerModal()">×</button>
+    <div id="playerProfileBody">
+      <p style="color:var(--sideline)">Loading player profile...</p>
     </div>
   </div>
 </div>
@@ -163,6 +262,21 @@
           <label>Select European Team</label>
           <select id="alertTeamSelect" class="form-control">
             <option value="">-- Choose a Team (All 96 Clubs) --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Competition Granularity (Phase 2)</label>
+          <select id="alertCompSelect" class="form-control">
+            <option value="all">🌍 All Competitions (Default)</option>
+            <option value="uefa.champions">🏆 UEFA Champions League Only</option>
+            <option value="eng.1">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League Only</option>
+            <option value="esp.1">🇪🇸 La Liga Only</option>
+            <option value="ita.1">🇮🇹 Serie A Only</option>
+            <option value="ger.1">🇩🇪 Bundesliga Only</option>
+            <option value="fra.1">🇫🇷 Ligue 1 Only</option>
+            <option value="uefa.europa">🥈 UEFA Europa League Only</option>
+            <option value="uefa.conference">🥉 UEFA Conference League Only</option>
           </select>
         </div>
         
