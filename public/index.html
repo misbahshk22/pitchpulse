@@ -9,7 +9,9 @@
 <meta property="og:title" content="GoalHub — Real-Time European Football Hub">
 <meta property="og:description" content="Live scores, tactical team formations, official squads, manager info, clean sheets, and standings.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://ui-avatars.com/api/?name=GoalHub&background=10281b&color=00ff87&size=512&bold=true">
+<meta property="og:image" content="https://goalhub22.netlify.app/static/logo.png">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/static/logo.png">
 <link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +23,10 @@
 <!-- Top Navigation Bar -->
 <header class="navbar">
   <div class="nav-container">
-    <div class="brand" onclick="navigateTo('dashboard')">Goal<span>Hub</span></div>
+    <div class="brand" onclick="navigateTo('dashboard')">
+      <img src="/static/logo.png" alt="GoalHub" class="brand-logo-img">
+      <span>Goal<span>Hub</span></span>
+    </div>
     <nav class="nav-links">
       <button class="nav-btn active" data-view="dashboard" onclick="navigateTo('dashboard')">⚡ Dashboard</button>
       <button class="nav-btn" data-view="live" onclick="navigateTo('live')"><span class="nav-pulse"></span> Live Matches</button>
