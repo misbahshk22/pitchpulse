@@ -245,10 +245,25 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+// 6g. Live Player Photo Resolver
+app.get('/api/player-photo', async (req, res) => {
+  try {
+    const name = (req.query.name as string) || '';
+    const id = req.query.id as string | undefined;
+    if (!name && !id) {
+      return res.status(400).json({ status: 'error', message: 'Player name or id required' });
+    }
+    const photo = await footballApi.getPlayerPhoto(name, id);
+    res.json({ status: 'success', photo });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Failed to resolve photo' });
+  }
+});
+
 // 7. Subscribe to notifications
 app.post('/api/notifications/subscribe', (req, res) => {
   try {
-    const { channel, targetId, teamId, leagueId, events } = req.body;
+    const { channel, targetId, teamId, leagueId, events, competitionFilter } = req.body;
     if (!channel || !targetId) {
       return res.status(400).json({ status: 'error', message: 'channel and targetId are required' });
     }
@@ -260,6 +275,7 @@ app.post('/api/notifications/subscribe', (req, res) => {
       targetId,
       teamId,
       leagueId,
+      competitionFilter: competitionFilter || 'all',
       events: events || ['goal', 'kickoff', 'fulltime'],
       createdAt: new Date().toISOString()
     });

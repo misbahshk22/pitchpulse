@@ -58,6 +58,17 @@
     <div id="askAnswer"></div>
   </div>
 
+  <!-- Personalized Favorites Section (Phase 2) -->
+  <div id="personalizedFavoritesWrap" style="display:none;" class="favorites-feed-wrap">
+    <div class="section-header">
+      <h2 style="color:var(--accent-gold); display:flex; align-items:center; gap:8px;">
+        <span>⭐</span> My Favorite Clubs' Matches
+      </h2>
+      <span class="fav-count-tag" id="favCountTag">0 Clubs Followed</span>
+    </div>
+    <div id="favoritesLiveList" class="match-grid"></div>
+  </div>
+
   <div class="quick-overview-wrap">
     <div class="section-header">
       <h2>🔥 Live & Recent Matchday Highlights</h2>
@@ -214,6 +225,21 @@
           <label>Select European Team</label>
           <select id="alertTeamSelect" class="form-control">
             <option value="">-- Choose a Team (All 96 Clubs) --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Competition Granularity (Phase 2)</label>
+          <select id="alertCompSelect" class="form-control">
+            <option value="all">🌍 All Competitions (Default)</option>
+            <option value="uefa.champions">🏆 UEFA Champions League Only</option>
+            <option value="eng.1">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League Only</option>
+            <option value="esp.1">🇪🇸 La Liga Only</option>
+            <option value="ita.1">🇮🇹 Serie A Only</option>
+            <option value="ger.1">🇩🇪 Bundesliga Only</option>
+            <option value="fra.1">🇫🇷 Ligue 1 Only</option>
+            <option value="uefa.europa">🥈 UEFA Europa League Only</option>
+            <option value="uefa.conference">🥉 UEFA Conference League Only</option>
           </select>
         </div>
         

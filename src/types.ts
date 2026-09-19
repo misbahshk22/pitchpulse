@@ -77,6 +77,7 @@ export interface AlertSubscription {
   targetId: string;
   teamId?: number;
   leagueId?: number;
+  competitionFilter?: string; // Granular filter: e.g. "all", "uefa.champions", "eng.1"
   events: ('kickoff' | 'lineup' | 'goal' | 'fulltime')[];
   createdAt: string;
 }
@@ -86,11 +87,14 @@ export interface SquadPlayer {
   name: string;
   jersey?: string;
   position?: string;
+  photo?: string;
 }
 
 export interface TeamSquad {
   teamName: string;
   teamLogo?: string;
+  manager?: string;
+  stadium?: string;
   players: SquadPlayer[];
 }
 
@@ -179,6 +183,7 @@ export interface LeagueLeaderPlayer {
   appearances: number;
   value: number;
   displayValue: string;
+  photo?: string;
 }
 
 export interface LeagueLeaders {

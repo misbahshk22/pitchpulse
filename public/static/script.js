@@ -70,6 +70,89 @@ async function loadLeagues() {
   }
 }
 
+// ==========================================
+// Phase 2: Personalization & Favorites
+// ==========================================
+function getFavorites() {
+  try {
+    const raw = localStorage.getItem('goalhub_favorites');
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function isFavorite(teamName) {
+  if (!teamName) return false;
+  const favs = getFavorites();
+  const clean = teamName.toLowerCase().trim();
+  return favs.some(f => f.toLowerCase().trim() === clean);
+}
+
+function toggleFavorite(teamName) {
+  if (!teamName) return;
+  let favs = getFavorites();
+  const clean = teamName.trim();
+  const idx = favs.findIndex(f => f.toLowerCase() === clean.toLowerCase());
+  if (idx >= 0) {
+    favs.splice(idx, 1);
+    showToast(`Removed ${clean} from your favorites.`);
+  } else {
+    favs.push(clean);
+    showToast(`⭐ Added ${clean} to your favorite clubs!`);
+  }
+  localStorage.setItem('goalhub_favorites', JSON.stringify(favs));
+
+  // Update all star buttons on the page
+  document.querySelectorAll('.fav-star-btn').forEach(btn => {
+    const t = btn.getAttribute('data-team');
+    if (t) {
+      const active = isFavorite(t);
+      btn.classList.toggle('active', active);
+      btn.textContent = active ? '⭐' : '☆';
+    }
+  });
+
+  // Re-render feed
+  if (window.latestHomePool) {
+    renderPersonalizedFavoritesFeed(window.latestHomePool);
+  }
+}
+
+function renderPersonalizedFavoritesFeed(pool) {
+  const wrap = document.getElementById('personalizedFavoritesWrap');
+  const container = document.getElementById('favoritesLiveList');
+  const countTag = document.getElementById('favCountTag');
+  if (!wrap || !container) return;
+
+  const favs = getFavorites();
+  if (favs.length === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = 'block';
+  if (countTag) countTag.textContent = `${favs.length} ${favs.length === 1 ? 'Club' : 'Clubs'} Followed`;
+
+  const matches = (pool || []).filter(f =>
+    isFavorite(f.homeTeam?.name) || isFavorite(f.awayTeam?.name)
+  );
+
+  container.innerHTML = '';
+  if (matches.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; background: rgba(255,215,0,0.04); border: 1px dashed rgba(255,215,0,0.25); border-radius: 10px; padding: 18px; text-align: center; color: var(--text-muted); font-size: 0.88rem;">
+        ⭐ Following <strong>${favs.join(', ')}</strong>. No live matches right now for your clubs. Browse full schedule below!
+      </div>
+    `;
+    return;
+  }
+
+  for (const m of matches) {
+    container.appendChild(createMatchCard(m));
+  }
+}
+
 async function initDashboard() {
   // Marquee
   initNextMarquee();
@@ -103,6 +186,9 @@ async function initDashboard() {
           highlights.push(item);
         }
       }
+
+      window.latestHomePool = highlights;
+      renderPersonalizedFavoritesFeed(highlights);
 
       const topMatches = highlights.slice(0, 6);
 
@@ -391,10 +477,19 @@ async function fetchAndRenderSquad(teamQuery) {
     let html = `
       <div style="background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:var(--card-radius); padding:24px;">
         <div class="team-banner">
-          <img src="${s.teamLogo || ''}" alt="${s.teamName}">
+          <img src="${s.teamLogo || ''}" alt="${s.teamName}" onerror="this.style.display='none'">
           <div>
-            <h3>${s.teamName}</h3>
-            <span style="font-size:0.85rem; color:var(--pitch-green); font-weight:600;">Official First Team Squad (${s.players.length} Players)</span>
+            <h3>
+              ${s.teamName}
+              <button class="fav-star-btn ${isFavorite(s.teamName) ? 'active' : ''}" data-team="${s.teamName}" onclick="toggleFavorite('${s.teamName}')" title="Favorite ${s.teamName}">
+                ${isFavorite(s.teamName) ? '⭐' : '☆'}
+              </button>
+            </h3>
+            <div class="squad-meta-row">
+              <span class="manager-badge">👔 Manager: <strong>${s.manager || 'First Team Head Coach'}</strong></span>
+              ${s.stadium ? `<span class="stadium-badge">🏟️ ${s.stadium}</span>` : ''}
+              <span class="squad-count-badge">👥 ${s.players.length} Players</span>
+            </div>
           </div>
         </div>
         <div class="squad-section">
@@ -406,13 +501,25 @@ async function fetchAndRenderSquad(teamQuery) {
         const icon = pos === 'Goalkeeper' ? '🧤' : pos === 'Defender' ? '🛡️' : pos === 'Midfielder' ? '🎯' : '⚡';
         html += `
           <div class="squad-pos-title">${icon} ${pos}s (${inPos.length})</div>
-          <div class="squad-grid">
-            ${inPos.map(p => `
-              <div class="player-chip">
-                <span class="jersey-badge">${p.jersey !== '-' ? '#' + p.jersey : '•'}</span>
-                <span style="font-weight:500;">${p.name}</span>
-              </div>
-            `).join('')}
+          <div class="squad-grid-cards">
+            ${inPos.map(p => {
+              const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=10281b&color=00ff87&size=150&bold=true`;
+              const avatarSrc = p.photo || fallbackAvatar;
+              return `
+                <div class="squad-player-card" onclick="openPlayerProfile('${p.id || p.name}')" title="Click to view ${p.name}'s bio & season stats">
+                  <div class="squad-player-avatar-wrap">
+                    <img class="squad-player-avatar" src="${avatarSrc}" onerror="this.src='${fallbackAvatar}'" alt="${p.name}">
+                  </div>
+                  <div class="squad-player-info">
+                    <div class="squad-player-name">${p.name}</div>
+                    <div class="squad-player-sub">
+                      <span class="jersey-badge">${p.jersey !== '-' ? '#' + p.jersey : '•'}</span>
+                      <span class="squad-player-pos-tag">${p.position}</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
           </div>
         `;
       }
@@ -422,13 +529,25 @@ async function fetchAndRenderSquad(teamQuery) {
     if (others.length > 0) {
       html += `
         <div class="squad-pos-title">Other Squad Members (${others.length})</div>
-        <div class="squad-grid">
-          ${others.map(p => `
-            <div class="player-chip">
-              <span class="jersey-badge">${p.jersey !== '-' ? '#' + p.jersey : '•'}</span>
-              <span>${p.name}</span>
-            </div>
-          `).join('')}
+        <div class="squad-grid-cards">
+          ${others.map(p => {
+            const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=10281b&color=00ff87&size=150&bold=true`;
+            const avatarSrc = p.photo || fallbackAvatar;
+            return `
+              <div class="squad-player-card" onclick="openPlayerProfile('${p.id || p.name}')" title="Click to view ${p.name}'s bio & season stats">
+                <div class="squad-player-avatar-wrap">
+                  <img class="squad-player-avatar" src="${avatarSrc}" onerror="this.src='${fallbackAvatar}'" alt="${p.name}">
+                </div>
+                <div class="squad-player-info">
+                  <div class="squad-player-name">${p.name}</div>
+                  <div class="squad-player-sub">
+                    <span class="jersey-badge">${p.jersey !== '-' ? '#' + p.jersey : '•'}</span>
+                    <span class="squad-player-pos-tag">${p.position || 'Player'}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
         </div>
       `;
     }
@@ -579,6 +698,7 @@ function createMatchCard(f) {
         <div class="team-meta">
           <img src="${f.homeTeam.logo}" alt="${f.homeTeam.name}" onerror="this.style.display='none'">
           <span>${f.homeTeam.name}</span>
+          <button class="fav-star-btn ${isFavorite(f.homeTeam.name) ? 'active' : ''}" data-team="${f.homeTeam.name}" onclick="event.stopPropagation(); toggleFavorite('${f.homeTeam.name}')" title="Favorite ${f.homeTeam.name}">${isFavorite(f.homeTeam.name) ? '⭐' : '☆'}</button>
         </div>
         <div class="team-score">${homeScore}</div>
       </div>
@@ -586,6 +706,7 @@ function createMatchCard(f) {
         <div class="team-meta">
           <img src="${f.awayTeam.logo}" alt="${f.awayTeam.name}" onerror="this.style.display='none'">
           <span>${f.awayTeam.name}</span>
+          <button class="fav-star-btn ${isFavorite(f.awayTeam.name) ? 'active' : ''}" data-team="${f.awayTeam.name}" onclick="event.stopPropagation(); toggleFavorite('${f.awayTeam.name}')" title="Favorite ${f.awayTeam.name}">${isFavorite(f.awayTeam.name) ? '⭐' : '☆'}</button>
         </div>
         <div class="team-score">${awayScore}</div>
       </div>
@@ -1193,7 +1314,7 @@ async function fetchLeagueLeaders(leagueId) {
                 </td>
                 <td>
                   <div class="leader-player-cell">
-                    <img class="leader-player-avatar" src="https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/${p.id}.png&w=90&h=65" onerror="this.src='https://a.espncdn.com/i/headshots/nophoto.png'" alt="${p.name}">
+                    <img class="leader-player-avatar" src="${p.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.name) + '&background=10281b&color=00ff87&size=150&bold=true'}" onerror="this.src='https://ui-avatars.com/api/?name=' + encodeURIComponent('${escapeHtml(p.name)}') + '&background=10281b&color=00ff87&size=150&bold=true'" alt="${p.name}">
                     <div>
                       <div style="font-weight:700; color:var(--text-main);">${p.name}</div>
                       <div style="font-size:0.75rem; color:var(--sideline);">${p.jersey ? '#' + p.jersey : ''}</div>
@@ -1247,9 +1368,11 @@ async function openPlayerProfile(playerId) {
     const data = await res.json();
     const p = data.profile;
 
+    const fallbackPhoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=10281b&color=00ff87&size=350&bold=true`;
+
     body.innerHTML = `
       <div class="player-hero-header">
-        <img class="player-big-photo" src="${p.photo}" onerror="this.src='https://a.espncdn.com/i/headshots/nophoto.png'" alt="${p.name}">
+        <img class="player-big-photo" src="${p.photo || fallbackPhoto}" onerror="this.src='${fallbackPhoto}'" alt="${p.name}">
         <div class="player-hero-info">
           <div style="font-size:0.8rem; color:var(--pitch-green); font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">
             ${p.position} ${p.jersey ? '· #' + p.jersey : ''}
@@ -1568,11 +1691,12 @@ async function loadUserSubscriptions() {
     container.innerHTML = subs.map(s => {
       const channelIcon = s.channel === 'telegram' ? '📱' : s.channel === 'discord' ? '🎮' : s.channel === 'whatsapp' ? '💬' : '🌐';
       const eventsStr = (s.events || []).map(e => e === 'goal' ? '⚽ Goals' : e === 'kickoff' ? '⏱️ Kickoff' : '🏁 Full-Time').join(', ');
+      const compStr = s.competitionFilter && s.competitionFilter !== 'all' ? ` · 🏆 ${s.competitionFilter.toUpperCase()}` : '';
       return `
         <div class="sub-item-card">
           <div class="sub-item-meta">
             <strong>${channelIcon} ${s.targetId || 'Browser'}</strong>
-            <span>Events: ${eventsStr}</span>
+            <span>Events: ${eventsStr}${compStr}</span>
           </div>
           <button class="sub-del-btn" onclick="deleteUserSubscription('${s.id}')">Remove</button>
         </div>
@@ -1585,8 +1709,10 @@ async function loadUserSubscriptions() {
 
 async function submitNewSubscription() {
   const select = document.getElementById('alertTeamSelect');
+  const compSelect = document.getElementById('alertCompSelect');
   const channelSelect = document.getElementById('alertChannelSelect');
   const teamName = select ? select.value : '';
+  const competitionFilter = compSelect ? compSelect.value : 'all';
   const channel = channelSelect ? channelSelect.value : 'web';
 
   const events = [];
@@ -1607,12 +1733,13 @@ async function submitNewSubscription() {
       body: JSON.stringify({
         channel,
         targetId: teamName ? teamName : 'All European Clubs',
+        competitionFilter,
         events
       })
     });
     const data = await res.json();
     if (data.status === 'success') {
-      showToast(`🔔 Subscribed to ${teamName || 'all'} alerts via ${channel.toUpperCase()}!`);
+      showToast(`🔔 Subscribed to ${teamName || 'all'} alerts (${competitionFilter.toUpperCase()}) via ${channel.toUpperCase()}!`);
       if (channel === 'web' && 'Notification' in window && Notification.permission !== 'granted') {
         Notification.requestPermission();
       }

@@ -645,21 +645,90 @@ body {
 .team-banner {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   margin-bottom: 16px;
-  padding-bottom: 12px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--panel-border);
 }
 
 .team-banner img {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
 }
 
 .team-banner h3 {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.squad-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.manager-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 255, 135, 0.12);
+  border: 1px solid rgba(0, 255, 135, 0.35);
+  color: var(--pitch-green);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+
+.stadium-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.squad-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.fav-star-btn {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  line-height: 1;
+}
+.fav-star-btn:hover {
+  transform: scale(1.25);
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+}
+.fav-star-btn.active {
+  color: #ffd700;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
 }
 
 .squad-section {
@@ -667,33 +736,111 @@ body {
 }
 
 .squad-pos-title {
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--pitch-green);
   font-weight: 700;
-  margin: 14px 0 8px;
+  margin: 18px 0 10px;
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-
-.squad-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 8px;
 }
 
-.player-chip {
+.squad-grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.squad-player-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: rgba(0, 0, 0, 0.35);
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 0.85rem;
-  color: #f1f5f9;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.squad-player-card:hover {
+  background: rgba(0, 255, 135, 0.06);
+  border-color: rgba(0, 255, 135, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(0, 255, 135, 0.15);
+}
+
+.squad-player-avatar-wrap {
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #0f172a;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.squad-player-card:hover .squad-player-avatar-wrap {
+  border-color: var(--pitch-green);
+}
+
+.squad-player-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.squad-player-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.squad-player-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.squad-player-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  font-size: 0.78rem;
+}
+
+.squad-player-pos-tag {
+  color: var(--sideline);
+  font-weight: 500;
+}
+
+.favorites-feed-wrap {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(0, 255, 135, 0.03) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.fav-count-tag {
+  background: rgba(255, 215, 0, 0.15);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  color: #ffd700;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
 }
 
 .jersey-badge {
